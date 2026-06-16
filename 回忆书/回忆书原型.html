@@ -130,44 +130,56 @@
             >
                 <div
                     id="stateEntry"
-                    class="absolute inset-0 flex flex-col items-center justify-center px-6 select-none state-transition opacity-100 z-10"
+                    class="absolute inset-0 flex flex-col items-center justify-start px-6 pt-[22vh] select-none state-transition opacity-100 z-10"
                 >
                     <div
-                        class="w-full max-w-[920px] flex flex-col items-center"
+                        class="w-full max-w-[760px] flex flex-col items-center"
                     >
                         <h2
-                            class="text-[48px] font-medium text-[#0F172A] tracking-tight leading-[1.15] mb-10 text-center"
+                            class="text-2xl font-normal text-[#111827] leading-9 mb-5 text-center"
                         >
-                            今天想记录些什么？
+                            准备好了，随时开始
                         </h2>
 
                         <div
-                            class="w-full h-16 bg-white border border-[#E5E7EB] rounded-[32px] shadow-input flex items-center px-[18px] mb-5 focus-within:border-slate-300 transition-colors"
+                            class="w-full min-h-[52px] bg-white border border-[#E5E7EB] rounded-[28px] shadow-input grid grid-cols-[auto_1fr_auto] items-center py-[5px] pl-[7px] pr-2 mb-7 focus-within:border-slate-300 transition-colors"
                         >
                             <button
-                                class="w-9 h-9 flex items-center justify-center rounded-full text-[#64748B] hover:bg-[#F8FAFC] transition-colors"
+                                class="w-9 h-9 flex items-center justify-center rounded-full text-[#111827] hover:bg-[#F8FAFC] transition-colors"
                                 title="添加素材"
                             >
                                 <i
                                     data-lucide="plus"
-                                    class="w-[18px] h-[18px]"
+                                    class="w-5 h-5"
                                 ></i>
                             </button>
                             <input
                                 id="inputEntry"
                                 type="text"
-                                placeholder="写下今天的回忆..."
-                                class="flex-1 bg-transparent border-none outline-none px-3 text-lg text-[#0F172A] placeholder-[#94A3B8]"
+                                placeholder="问问你的回忆..."
+                                class="min-h-10 bg-transparent border-none outline-none px-3 text-[15px] font-normal text-[#0F172A] placeholder-[#94A3B8]"
                             />
-                            <button
-                                id="btnSendEntry"
-                                class="w-9 h-9 flex items-center justify-center bg-[#0F172A] hover:bg-slate-800 text-white rounded-full transition-colors shadow-sm"
-                            >
-                                <i
-                                    data-lucide="arrow-up"
-                                    class="w-[18px] h-[18px]"
-                                ></i>
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    class="w-9 h-9 flex items-center justify-center rounded-full text-[#111827] hover:bg-[#F8FAFC] transition-colors"
+                                    title="开始听写"
+                                >
+                                    <i
+                                        data-lucide="mic"
+                                        class="w-5 h-5"
+                                    ></i>
+                                </button>
+                                <button
+                                    id="btnSendEntry"
+                                    class="w-9 h-9 flex items-center justify-center bg-[#0F172A] hover:bg-slate-800 text-white rounded-full transition-colors shadow-sm"
+                                    title="发送"
+                                >
+                                    <i
+                                        data-lucide="audio-lines"
+                                        class="w-5 h-5"
+                                    ></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="flex items-center gap-2.5">
@@ -187,7 +199,7 @@
                                     data-lucide="sparkles"
                                     class="w-3.5 h-3.5 text-[#64748B]"
                                 ></i>
-                                AI 帮我整理
+                                总结最近
                             </button>
                             <button
                                 class="h-9 px-4 border border-[#E5E7EB] rounded-full text-[13px] text-[#475569] bg-white hover:bg-[#F8FAFC] flex items-center gap-1.5 transition-colors"
@@ -222,7 +234,7 @@
                             data-lucide="loader"
                             class="w-3.5 h-3.5 animate-spin"
                         ></i>
-                        <span>正在整理回忆...</span>
+                        <span>正在检索回忆...</span>
                     </div>
 
                     <div
@@ -234,10 +246,10 @@
                                 <h3
                                     class="text-[13px] font-semibold text-[#0F172A] mb-2 select-none"
                                 >
-                                    今日记忆
+                                    找到的相关回忆
                                 </h3>
                                 <p class="text-[#475569]">
-                                    今天完成了微服务网关架构的路由配置重构，解决了长期存在的网关转发延迟问题。同时在下午系统性地梳理了工程思维决策分析大纲，建立了一套可复用的技术架构选型评估模型。
+                                    你最近多次提到「微服务网关」「工程决策」和「架构演进」。从记录来看，6月中旬你集中处理了网关路由重构和技术债务收敛，并在同一阶段开始沉淀一套架构选型评估方法。
                                 </p>
                             </div>
 
@@ -247,16 +259,16 @@
                                 <h3
                                     class="text-[13px] font-semibold text-[#0F172A] mb-2 select-none"
                                 >
-                                    关键事件与情绪线索
+                                    AI 回答
                                 </h3>
                                 <ul
                                     class="list-disc pl-5 space-y-1.5 text-[#475569]"
                                 >
                                     <li>
-                                        系统重构落地顺利，整体研发技术债务得到局部缓解，心情较为轻快。
+                                        你当时最关注的是如何降低长期维护成本，而不是单纯追求短期性能指标。
                                     </li>
                                     <li>
-                                        在整理工程决策大纲时，深入思考了技术演进边界，产生了一些探索未知领域的兴奋感。
+                                        相关记录显示，你对「可复用的工程判断框架」表现出持续兴趣，这可能是后续技术复盘的主线。
                                     </li>
                                 </ul>
                             </div>
@@ -267,7 +279,7 @@
                                 <h3
                                     class="text-[13px] font-semibold text-[#0F172A] mb-2.5 select-none"
                                 >
-                                    可沉淀的想法与标签
+                                    相关标签
                                 </h3>
                                 <div class="flex flex-wrap gap-2">
                                     <span
@@ -276,11 +288,11 @@
                                     >
                                     <span
                                         class="px-2.5 py-1 bg-[#F1F5F9] rounded-full text-[12px] text-[#475569] font-medium"
-                                        >#工程思维</span
+                                        >#工程决策</span
                                     >
                                     <span
                                         class="px-2.5 py-1 bg-[#F1F5F9] rounded-full text-[12px] text-[#475569] font-medium"
-                                        >#架构演进</span
+                                        >#技术复盘</span
                                     >
                                 </div>
                             </div>
@@ -302,12 +314,12 @@
                                     <h4
                                         class="text-[13px] font-semibold text-[#0F172A]"
                                     >
-                                        已自动整理为结构化回忆书
+                                        可继续追问这段回忆
                                     </h4>
                                     <p
                                         class="text-[12px] text-[#64748B] mt-0.5"
                                     >
-                                        归档至 2026年6月 · 技术成长分类
+                                        例如：当时为什么选择这个架构方案？
                                     </p>
                                 </div>
                             </div>
@@ -315,7 +327,7 @@
                                 <button
                                     class="px-3 py-1.5 text-[12px] font-medium text-[#475569] hover:bg-[#F8FAFC] rounded-lg border border-[#E5E7EB] transition-colors"
                                 >
-                                    查看卡片
+                                    查看来源
                                 </button>
                             </div>
                         </div>
@@ -338,7 +350,7 @@
                         <textarea
                             id="inputChat"
                             rows="1"
-                            placeholder="继续补充这段回忆..."
+                            placeholder="继续追问你的回忆..."
                             class="flex-1 bg-transparent border-none outline-none px-3 py-2 text-[15px] text-[#0F172A] placeholder-[#94A3B8] resize-none h-10 max-h-24 no-scrollbar leading-relaxed"
                         ></textarea>
                         <button
@@ -455,7 +467,7 @@
 
             btnSendChat.addEventListener("click", () => {
                 if (inputChat.value.trim()) {
-                    alert("回忆已追加补充，AI 正在为您持续沉淀...");
+                    alert("AI 正在根据你的回忆继续回答...");
                     inputChat.value = "";
                 }
             });
