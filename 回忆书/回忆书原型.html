@@ -50,6 +50,24 @@
             .state-transition {
                 transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
             }
+
+            /* 状态切换动画 */
+            #stateEntry {
+                transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+            }
+
+            #stateChat {
+                transition: opacity 0.35s ease 0.05s, transform 0.4s cubic-bezier(0.25, 1, 0.5, 1) 0.05s;
+            }
+
+            #fixedChatInput {
+                transition: opacity 0.3s ease 0.15s, transform 0.35s cubic-bezier(0.25, 1, 0.5, 1) 0.15s;
+            }
+
+            #aiLoading,
+            #aiResponse {
+                transition: opacity 0.2s ease;
+            }
         </style>
     </head>
     <body
@@ -360,48 +378,62 @@
             const aiLoading = document.getElementById("aiLoading");
             const aiResponse = document.getElementById("aiResponse");
 
+            // 初始化各状态元素
+            stateEntry.style.opacity = "1";
+            stateEntry.style.transform = "translateY(0)";
+            stateChat.style.opacity = "0";
+            stateChat.style.transform = "translateY(16px)";
+            fixedChatInput.style.opacity = "0";
+            fixedChatInput.style.transform = "translateY(20px)";
+
             // 切换到对话态逻辑
             function transitToChatState(text) {
                 if (!text.trim()) return;
 
                 chatUserContent.textContent = text;
 
-                stateEntry.setTimeout = 200;
-                stateEntry.classList.remove("opacity-100");
-                stateEntry.classList.add("opacity-0", "pointer-events-none");
+                // 1. 入口态淡出（上移 + 透明）
+                stateEntry.style.opacity = "0";
+                stateEntry.style.transform = "translateY(-12px)";
+                stateEntry.style.pointerEvents = "none";
 
                 setTimeout(() => {
+                    // 2. 入口态完全隐藏
                     stateEntry.classList.add("hidden");
+
+                    // 3. 对话态准备
                     stateChat.classList.remove("hidden");
                     fixedChatInput.classList.remove("hidden");
 
+                    // 强制重排，确保 transition 生效
+                    void stateChat.offsetHeight;
+
+                    // 4. 对话态淡入（从下方移入）
+                    stateChat.style.opacity = "1";
+                    stateChat.style.transform = "translateY(0)";
+                    stateChat.style.pointerEvents = "auto";
+
+                    // 5. 底部输入框淡入
+                    fixedChatInput.style.opacity = "1";
+                    fixedChatInput.style.transform = "translateY(0)";
+                    fixedChatInput.style.pointerEvents = "auto";
+
+                    // 6. AI Loading 淡入
+                    aiLoading.classList.remove("hidden");
+                    aiLoading.style.opacity = "1";
+                    aiResponse.style.opacity = "0";
+                    aiResponse.classList.add("hidden");
+
                     setTimeout(() => {
-                        stateChat.classList.remove(
-                            "opacity-0",
-                            "pointer-events-none",
-                        );
-                        fixedChatInput.classList.remove(
-                            "opacity-0",
-                            "pointer-events-none",
-                        );
-
-                        aiLoading.classList.remove("hidden");
-                        aiLoading.style.opacity = "1";
-                        aiResponse.style.opacity = "0";
-                        aiResponse.classList.add("hidden");
-
+                        aiLoading.style.opacity = "0";
                         setTimeout(() => {
-                            aiLoading.style.opacity = "0";
-                            setTimeout(() => {
-                                aiLoading.classList.add("hidden");
-                                aiResponse.classList.remove("hidden");
-                                setTimeout(() => {
-                                    aiResponse.classList.remove("opacity-0");
-                                }, 50);
-                            }, 150);
-                        }, 1500);
-                    }, 50);
-                }, 200);
+                            aiLoading.classList.add("hidden");
+                            aiResponse.classList.remove("hidden");
+                            void aiResponse.offsetHeight;
+                            aiResponse.style.opacity = "1";
+                        }, 150);
+                    }, 1500);
+                }, 250);
             }
 
             // 切换回首页入口态逻辑
@@ -409,28 +441,32 @@
                 inputEntry.value = "";
                 inputChat.value = "";
 
-                stateChat.classList.add("opacity-0", "pointer-events-none");
-                fixedChatInput.classList.add(
-                    "opacity-0",
-                    "pointer-events-none",
-                );
+                // 1. 对话态淡出（下移 + 透明）
+                stateChat.style.opacity = "0";
+                stateChat.style.transform = "translateY(16px)";
+                stateChat.style.pointerEvents = "none";
+
+                fixedChatInput.style.opacity = "0";
+                fixedChatInput.style.transform = "translateY(20px)";
+                fixedChatInput.style.pointerEvents = "none";
 
                 setTimeout(() => {
                     stateChat.classList.add("hidden");
                     fixedChatInput.classList.add("hidden");
 
+                    // 2. 入口态准备
                     stateEntry.classList.remove("hidden");
-                    aiLoading.classList.remove("hidden");
-                    aiResponse.classList.add("opacity-0", "hidden");
+                    void stateEntry.offsetHeight;
 
-                    setTimeout(() => {
-                        stateEntry.classList.remove(
-                            "opacity-0",
-                            "pointer-events-none",
-                        );
-                        stateEntry.classList.add("opacity-100");
-                    }, 50);
-                }, 200);
+                    // 3. 入口态淡入（从上方移入）
+                    stateEntry.style.opacity = "1";
+                    stateEntry.style.transform = "translateY(0)";
+                    stateEntry.style.pointerEvents = "auto";
+
+                    aiLoading.classList.remove("hidden");
+                    aiResponse.classList.add("hidden");
+                    aiResponse.style.opacity = "0";
+                }, 350);
             }
 
             // 事件监听
