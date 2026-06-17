@@ -27,7 +27,6 @@
                             ],
                         },
                         boxShadow: {
-                            air: "0 4px 24px rgba(15, 23, 42, 0.025), 0 1px 2px rgba(15, 23, 42, 0.02)",
                             modal:
                                 "0 24px 80px rgba(15, 23, 42, 0.12), 0 4px 18px rgba(15, 23, 42, 0.06)",
                         },
@@ -195,14 +194,6 @@
                 >
                     <i data-lucide="book-open" class="w-4 h-4"></i>
                 </a>
-                <a
-                    href="#"
-                    aria-label="回收站"
-                    title="回收站"
-                    class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors"
-                >
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                </a>
             </nav>
 
             <a
@@ -272,7 +263,7 @@
                 <section id="preferences" class="settings-page active px-8 py-8">
                     <div class="max-w-[1080px] mx-auto space-y-5">
                         <div
-                            class="bg-white border border-slate-200/70 rounded-[18px] shadow-air overflow-hidden"
+                            class="bg-white border border-slate-200/70 rounded-[18px] overflow-hidden"
                         >
                             <div class="px-6 py-4">
                                 <h2 class="text-[15px] font-semibold text-slate-900">
@@ -332,7 +323,7 @@
                         </div>
 
                         <div
-                            class="bg-white border border-slate-200/70 rounded-[18px] shadow-air overflow-hidden"
+                            class="bg-white border border-slate-200/70 rounded-[18px] overflow-hidden"
                         >
                             <div class="px-6 py-4">
                                 <h2 class="text-[15px] font-semibold text-slate-900">
@@ -388,7 +379,7 @@
                         </div>
 
                         <div
-                            class="bg-white border border-slate-200/70 rounded-[18px] shadow-air overflow-hidden"
+                            class="bg-white border border-slate-200/70 rounded-[18px] overflow-hidden"
                         >
                             <div class="px-6 py-4">
                                 <h2 class="text-[15px] font-semibold text-slate-900">
@@ -407,7 +398,7 @@
                                         aria-label="开机自启动"
                                     >
                                         <span
-                                            class="absolute right-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-sm"
+                                            class="absolute right-0.5 top-0.5 w-5 h-5 rounded-full bg-white"
                                         ></span>
                                     </button>
                                 </div>
@@ -422,7 +413,7 @@
                                         aria-label="显示更新"
                                     >
                                         <span
-                                            class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-sm"
+                                            class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white"
                                         ></span>
                                     </button>
                                 </div>
@@ -681,7 +672,7 @@
                                         aria-label="启用供应商"
                                     >
                                         <span
-                                            class="absolute right-0.5 top-0.5 w-6 h-6 rounded-full bg-white shadow-sm"
+                                            class="absolute right-0.5 top-0.5 w-6 h-6 rounded-full bg-white"
                                         ></span>
                                     </button>
                                 </div>
@@ -869,7 +860,7 @@
                     </h2>
                     <div class="space-y-5">
                         <div
-                            class="bg-white border border-slate-200/70 rounded-[22px] shadow-air p-5"
+                            class="bg-white border border-slate-200/70 rounded-[22px] p-5"
                         >
                             <div class="flex items-start justify-between gap-6 mb-4">
                                 <div>
@@ -909,7 +900,7 @@
                         </div>
 
                         <div
-                            class="bg-white border border-slate-200/70 rounded-[22px] shadow-air p-5"
+                            class="bg-white border border-slate-200/70 rounded-[22px] p-5"
                         >
                             <div class="flex items-start justify-between gap-6 mb-4">
                                 <div>
@@ -949,7 +940,7 @@
                         </div>
 
                         <div
-                            class="bg-white border border-slate-200/70 rounded-[22px] shadow-air p-5"
+                            class="bg-white border border-slate-200/70 rounded-[22px] p-5"
                         >
                             <div class="flex items-start justify-between gap-6 mb-4">
                                 <div>
@@ -994,179 +985,43 @@
                     id="hotkeys"
                     class="settings-page px-8 py-8 max-w-[1180px] mx-auto w-full"
                 >
-                    <div class="flex items-center justify-between mb-5">
-                        <h2 class="text-[18px] font-medium text-slate-600">
-                            快捷键
-                        </h2>
-                        <button
-                            class="w-9 h-9 rounded-xl text-slate-700 hover:bg-slate-50 flex items-center justify-center"
-                            aria-label="刷新快捷键"
-                        >
-                            <i data-lucide="refresh-cw" class="w-5 h-5"></i>
-                        </button>
-                    </div>
+                    <h2 class="text-[18px] font-medium text-slate-600 mb-6">
+                        快捷键
+                    </h2>
                     <div
-                        class="bg-white border border-slate-200/70 rounded-[22px] shadow-air px-4 py-3"
+                        class="bg-white border border-slate-200/70 rounded-[20px] px-4 py-2"
                     >
-                        <div class="divide-y divide-slate-200/70">
-                            <div
-                                class="grid grid-cols-[1fr_340px_42px_42px_64px] items-center gap-4 min-h-[76px] px-2"
-                            >
-                                <div class="text-[17px] text-slate-700">
-                                    显示/隐藏应用
-                                </div>
-                                <button
-                                    class="h-12 rounded-[14px] border border-slate-300 bg-slate-50 px-4 text-left text-[16px] text-slate-500"
-                                >
-                                    按下快捷键
-                                </button>
-                                <button
-                                    class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center"
-                                    aria-label="重置快捷键"
-                                >
-                                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                                </button>
-                                <button
-                                    class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center"
-                                    aria-label="清除快捷键"
-                                >
-                                    <i data-lucide="eraser" class="w-5 h-5"></i>
-                                </button>
-                                <button
-                                    class="switch w-14 h-8 rounded-full bg-slate-900 relative transition-colors"
-                                    aria-label="启用显示隐藏应用快捷键"
-                                >
-                                    <span
-                                        class="absolute right-0.5 top-0.5 w-7 h-7 rounded-full bg-white shadow-sm"
-                                    ></span>
-                                </button>
+                        <div
+                            class="grid grid-cols-[1fr_280px_36px_36px_52px] items-center gap-3 min-h-[58px] px-2"
+                        >
+                            <div class="text-[13px] font-medium text-slate-800">
+                                显示/隐藏页面
                             </div>
-                            <div
-                                class="grid grid-cols-[1fr_340px_42px_42px_64px] items-center gap-4 min-h-[76px] px-2"
+                            <button
+                                class="h-10 rounded-[12px] border border-slate-300 bg-slate-50 px-3 text-left text-[13px] text-slate-500 hover:bg-slate-100/70 transition-colors"
                             >
-                                <div class="text-[17px] text-slate-700">
-                                    关闭窗口
-                                </div>
-                                <button
-                                    class="h-12 rounded-[14px] border border-slate-300 bg-slate-50 px-4 text-left text-[16px] font-medium text-slate-700"
-                                >
-                                    Ctrl + W
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="eraser" class="w-5 h-5"></i>
-                                </button>
-                                <button class="switch w-14 h-8 rounded-full bg-slate-900 relative transition-colors">
-                                    <span class="absolute right-0.5 top-0.5 w-7 h-7 rounded-full bg-white shadow-sm"></span>
-                                </button>
-                            </div>
-                            <div
-                                class="grid grid-cols-[1fr_340px_42px_42px_64px] items-center gap-4 min-h-[76px] px-2"
+                                按下快捷键
+                            </button>
+                            <button
+                                class="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-50 flex items-center justify-center"
+                                aria-label="重置快捷键"
                             >
-                                <div class="text-[17px] text-slate-700">
-                                    打开设置
-                                </div>
-                                <button
-                                    class="h-12 rounded-[14px] border border-slate-300 bg-slate-50 px-4 text-left text-[16px] font-medium text-slate-700"
-                                >
-                                    Ctrl + ,
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="eraser" class="w-5 h-5"></i>
-                                </button>
-                                <button class="switch w-14 h-8 rounded-full bg-slate-900 relative transition-colors">
-                                    <span class="absolute right-0.5 top-0.5 w-7 h-7 rounded-full bg-white shadow-sm"></span>
-                                </button>
-                            </div>
-                            <div
-                                class="grid grid-cols-[1fr_340px_42px_42px_64px] items-center gap-4 min-h-[76px] px-2"
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            </button>
+                            <button
+                                class="w-8 h-8 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-50 flex items-center justify-center"
+                                aria-label="清除快捷键"
                             >
-                                <div class="text-[17px] text-slate-700">
-                                    新建话题
-                                </div>
-                                <button
-                                    class="h-12 rounded-[14px] border border-slate-300 bg-slate-50 px-4 text-left text-[16px] font-medium text-slate-700"
-                                >
-                                    Ctrl + N
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="eraser" class="w-5 h-5"></i>
-                                </button>
-                                <button class="switch w-14 h-8 rounded-full bg-slate-900 relative transition-colors">
-                                    <span class="absolute right-0.5 top-0.5 w-7 h-7 rounded-full bg-white shadow-sm"></span>
-                                </button>
-                            </div>
-                            <div
-                                class="grid grid-cols-[1fr_340px_42px_42px_64px] items-center gap-4 min-h-[76px] px-2"
+                                <i data-lucide="eraser" class="w-4 h-4"></i>
+                            </button>
+                            <button
+                                class="switch w-11 h-6 rounded-full bg-slate-900 relative transition-colors"
+                                aria-label="启用显示隐藏页面快捷键"
                             >
-                                <div class="text-[17px] text-slate-700">
-                                    切换模型
-                                </div>
-                                <button
-                                    class="h-12 rounded-[14px] border border-slate-300 bg-slate-50 px-4 text-left text-[16px] text-slate-500"
-                                >
-                                    按下快捷键
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="eraser" class="w-5 h-5"></i>
-                                </button>
-                                <button class="switch w-14 h-8 rounded-full bg-slate-900 relative transition-colors">
-                                    <span class="absolute right-0.5 top-0.5 w-7 h-7 rounded-full bg-white shadow-sm"></span>
-                                </button>
-                            </div>
-                            <div
-                                class="grid grid-cols-[1fr_340px_42px_42px_64px] items-center gap-4 min-h-[76px] px-2"
-                            >
-                                <div class="text-[17px] text-slate-700">
-                                    切换助手显示
-                                </div>
-                                <button
-                                    class="h-12 rounded-[14px] border border-slate-300 bg-slate-50 px-4 text-left text-[16px] font-medium text-slate-700"
-                                >
-                                    Ctrl + [
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="eraser" class="w-5 h-5"></i>
-                                </button>
-                                <button class="switch w-14 h-8 rounded-full bg-slate-900 relative transition-colors">
-                                    <span class="absolute right-0.5 top-0.5 w-7 h-7 rounded-full bg-white shadow-sm"></span>
-                                </button>
-                            </div>
-                            <div
-                                class="grid grid-cols-[1fr_340px_42px_42px_64px] items-center gap-4 min-h-[76px] px-2"
-                            >
-                                <div class="text-[17px] text-slate-700">
-                                    切换话题显示
-                                </div>
-                                <button
-                                    class="h-12 rounded-[14px] border border-slate-300 bg-slate-50 px-4 text-left text-[16px] font-medium text-slate-700"
-                                >
-                                    Ctrl + ]
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
-                                </button>
-                                <button class="w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-50 flex items-center justify-center">
-                                    <i data-lucide="eraser" class="w-5 h-5"></i>
-                                </button>
-                                <button class="switch w-14 h-8 rounded-full bg-slate-900 relative transition-colors">
-                                    <span class="absolute right-0.5 top-0.5 w-7 h-7 rounded-full bg-white shadow-sm"></span>
-                                </button>
-                            </div>
+                                <span
+                                    class="absolute right-0.5 top-0.5 w-5 h-5 rounded-full bg-white"
+                                ></span>
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -1175,12 +1030,12 @@
                     <div class="max-w-[1080px] mx-auto">
                         <div class="flex items-center gap-2 mb-6">
                             <button
-                                class="h-8 px-3 rounded-full bg-slate-900 text-white text-xs"
+                                class="h-8 px-3 rounded-full border border-slate-200 text-xs text-slate-600 hover:bg-slate-50"
                             >
                                 全部
                             </button>
                             <button
-                                class="h-8 px-3 rounded-full border border-slate-200 text-xs text-slate-600 hover:bg-slate-50"
+                                class="h-8 px-3 rounded-full bg-slate-900 text-white text-xs"
                             >
                                 最近30天
                             </button>
@@ -1203,7 +1058,7 @@
                         </div>
 
                         <div
-                            class="bg-white border border-slate-200/70 rounded-[20px] shadow-air p-5 mb-5"
+                            class="bg-white border border-slate-200/70 rounded-[20px] p-5 mb-5"
                         >
                             <div
                                 class="flex items-center justify-between mb-4"
@@ -1243,7 +1098,7 @@
 
                         <div class="grid grid-cols-5 gap-3 mb-5">
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">128</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1251,7 +1106,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">431</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1259,7 +1114,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">96</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1267,7 +1122,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">62</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1275,7 +1130,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">24</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1283,7 +1138,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">10</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1291,7 +1146,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">1.2M</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1299,7 +1154,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">842k</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1307,7 +1162,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">318k</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1315,7 +1170,7 @@
                                 </div>
                             </div>
                             <div
-                                class="rounded-[18px] border border-slate-200/70 bg-white p-4 shadow-air"
+                                class="rounded-[18px] border border-slate-200/70 bg-white p-4"
                             >
                                 <div class="text-2xl font-semibold">87</div>
                                 <div class="text-xs text-slate-400 mt-1">
@@ -1325,72 +1180,37 @@
                         </div>
 
                         <div
-                            class="bg-white border border-slate-200/70 rounded-[20px] shadow-air p-5"
+                            class="bg-white border border-slate-200/70 rounded-[20px] px-5 pt-5 pb-4"
                         >
+                            <h2 class="text-[22px] font-semibold tracking-tight text-slate-800">
+                                用量趋势
+                            </h2>
+
+                            <div class="relative mt-4 h-[286px] overflow-visible">
+                                <div
+                                    id="usageScroller"
+                                    class="no-scrollbar absolute inset-0 overflow-x-auto overflow-y-hidden"
+                                >
+                                    <div
+                                        id="usageTrack"
+                                        class="relative h-full min-w-full"
+                                    >
+                                        <div
+                                            id="usageChart"
+                                            class="absolute left-0 right-0 top-0 bottom-9 z-10 flex items-end"
+                                        ></div>
+                                        <div
+                                            id="usageBaseline"
+                                            class="absolute left-0 right-0 bottom-[39px] z-0 flex items-center"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div
-                                class="flex items-center justify-between mb-6"
-                            >
-                                <h2
-                                    class="text-[13px] font-semibold text-slate-900"
-                                >
-                                    用量趋势
-                                </h2>
-                                <span class="text-xs text-slate-400"
-                                    >按供应商聚合</span
-                                >
-                            </div>
-                            <div class="flex items-center gap-4 mb-5 text-xs text-slate-500">
-                                <span class="flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-900"></span>
-                                    OpenAI
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
-                                    Local
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-200"></span>
-                                    Gemini
-                                </span>
-                            </div>
-                            <div class="relative h-64">
-                                <div
-                                    class="absolute left-0 top-0 bottom-8 w-10 flex flex-col justify-between text-[11px] text-slate-400 text-right pr-2"
-                                >
-                                    <span>120k</span>
-                                    <span>90k</span>
-                                    <span>60k</span>
-                                    <span>30k</span>
-                                    <span>0</span>
-                                </div>
-                                <div
-                                    class="absolute left-12 right-0 top-0 bottom-8 flex flex-col justify-between"
-                                >
-                                    <span class="border-t border-slate-100"></span>
-                                    <span class="border-t border-slate-100"></span>
-                                    <span class="border-t border-slate-100"></span>
-                                    <span class="border-t border-slate-100"></span>
-                                    <span class="border-t border-slate-200"></span>
-                                </div>
-                                <div
-                                    id="usageChart"
-                                    class="absolute left-12 right-0 top-0 bottom-8 flex items-end gap-2"
-                                ></div>
-                                <div
-                                    id="usageXAxis"
-                                    class="absolute left-12 right-0 bottom-0 h-5 flex justify-between text-[11px] text-slate-400"
-                                ></div>
-                                <div
-                                    class="absolute -left-2 top-1/2 -translate-y-1/2 -rotate-90 text-[11px] text-slate-400"
-                                >
-                                    Tokens
-                                </div>
-                                <div
-                                    class="absolute left-1/2 -translate-x-1/2 bottom-0 text-[11px] text-slate-400"
-                                >
-                                    日期
-                                </div>
-                            </div>
+                                id="usageLegend"
+                                class="no-scrollbar flex items-center gap-x-4 gap-y-2 overflow-x-auto whitespace-nowrap text-[12px] text-slate-500"
+                            ></div>
                         </div>
                     </div>
                 </section>
@@ -1403,7 +1223,7 @@
                         关于
                     </h2>
                     <div
-                        class="bg-white border border-slate-200/70 rounded-[22px] shadow-air px-6 py-6 mb-5 flex items-center gap-6"
+                        class="bg-white border border-slate-200/70 rounded-[22px] px-6 py-6 mb-5 flex items-center gap-6"
                     >
                         <div class="relative w-14 h-14">
                             <span
@@ -1427,7 +1247,7 @@
                     </div>
 
                     <div
-                        class="bg-white border border-slate-200/70 rounded-[22px] shadow-air px-6 py-5"
+                        class="bg-white border border-slate-200/70 rounded-[22px] px-6 py-5"
                     >
                         <h3 class="text-[22px] font-semibold text-slate-900 mb-4">
                             关于
@@ -1516,6 +1336,8 @@
                 </section>
             </div>
         </main>
+
+        <div id="floatingTooltip" class="fixed hidden pointer-events-none"></div>
 
         <div
             id="fontModal"
@@ -1814,38 +1636,127 @@
                     button.classList.toggle("bg-slate-900", !active);
                     button.classList.toggle("bg-slate-200", active);
                     knob.className = active
-                        ? `absolute left-0.5 top-0.5 ${knobSize} rounded-full bg-white shadow-sm`
-                        : `absolute right-0.5 top-0.5 ${knobSize} rounded-full bg-white shadow-sm`;
+                        ? `absolute left-0.5 top-0.5 ${knobSize} rounded-full bg-white`
+                        : `absolute right-0.5 top-0.5 ${knobSize} rounded-full bg-white`;
                 });
             });
+
+            const floatingTooltip = document.getElementById("floatingTooltip");
+
+            function hideFloatingTooltip() {
+                floatingTooltip.className = "fixed hidden pointer-events-none";
+                floatingTooltip.innerHTML = "";
+                floatingTooltip.style.display = "none";
+                floatingTooltip.style.visibility = "hidden";
+            }
+
+            function showFloatingTooltip(anchor, html, className) {
+                floatingTooltip.className = className;
+                floatingTooltip.innerHTML = html;
+                floatingTooltip.style.left = "0px";
+                floatingTooltip.style.top = "0px";
+                floatingTooltip.style.visibility = "hidden";
+                floatingTooltip.style.display = "block";
+
+                const margin = 10;
+                const anchorRect = anchor.getBoundingClientRect();
+                const tooltipRect = floatingTooltip.getBoundingClientRect();
+                let left =
+                    anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2;
+                let top = anchorRect.top - tooltipRect.height - margin;
+
+                if (top < margin) {
+                    top = anchorRect.bottom + margin;
+                }
+                if (top + tooltipRect.height > window.innerHeight - margin) {
+                    top = Math.max(
+                        margin,
+                        anchorRect.top - tooltipRect.height - margin,
+                    );
+                }
+
+                left = Math.min(
+                    Math.max(margin, left),
+                    window.innerWidth - tooltipRect.width - margin,
+                );
+
+                floatingTooltip.style.left = `${left}px`;
+                floatingTooltip.style.top = `${top}px`;
+                floatingTooltip.style.visibility = "visible";
+            }
+
+            function bindFloatingTooltip(anchor, html, className) {
+                anchor.addEventListener("mouseenter", () =>
+                    showFloatingTooltip(anchor, html, className),
+                );
+                anchor.addEventListener("mousemove", () =>
+                    showFloatingTooltip(anchor, html, className),
+                );
+                anchor.addEventListener("mouseleave", hideFloatingTooltip);
+            }
+
+            window.addEventListener("scroll", hideFloatingTooltip, true);
+            window.addEventListener("resize", hideFloatingTooltip);
 
             const heatmap = document.getElementById("heatmap");
             const heatmapMonths = document.getElementById("heatmapMonths");
             const heatColors = [
-                "bg-slate-100",
-                "bg-emerald-50",
-                "bg-emerald-100",
-                "bg-emerald-200",
-                "bg-emerald-300",
+                "bg-[#F1F5F9]",
+                "bg-[#DCFCE7]",
+                "bg-[#BBF7D0]",
+                "bg-[#86EFAC]",
+                "bg-[#4ADE80]",
             ];
-            const totalHeatmapDays = 371;
-            const totalHeatmapWeeks = Math.ceil(totalHeatmapDays / 7);
             const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const heatmapStart = new Date(
+                today.getFullYear() - 1,
+                today.getMonth(),
+                today.getDate(),
+            );
+            const totalHeatmapDays =
+                Math.round((today - heatmapStart) / 86400000) + 1;
+            const heatmapStartOffset = heatmapStart.getDay();
+            const totalHeatmapWeeks = Math.ceil(
+                (heatmapStartOffset + totalHeatmapDays) / 7,
+            );
             heatmapMonths.style.gridTemplateColumns = `repeat(${totalHeatmapWeeks}, 12px)`;
 
-            let lastMonth = -1;
-            for (let week = 0; week < totalHeatmapWeeks; week += 1) {
+            function formatLocalDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                return `${year}-${month}-${day}`;
+            }
+
+            const monthLabels = Array.from(
+                { length: totalHeatmapWeeks },
+                () => "",
+            );
+            let lastMonth = null;
+            for (let i = 0; i < totalHeatmapDays; i += 1) {
+                const date = new Date(heatmapStart);
+                date.setDate(heatmapStart.getDate() + i);
+                const month = date.getMonth();
+                const weekIndex = Math.floor((heatmapStartOffset + i) / 7);
+                if (month !== lastMonth) {
+                    monthLabels[weekIndex] = `${month + 1}月`;
+                    lastMonth = month;
+                }
+            }
+
+            monthLabels.forEach((monthLabel) => {
                 const label = document.createElement("div");
                 label.className =
                     "h-5 leading-5 text-left text-slate-400 whitespace-nowrap";
-                const date = new Date(today);
-                date.setDate(today.getDate() - (totalHeatmapWeeks - 1 - week) * 7);
-                const month = date.getMonth();
-                if (month !== lastMonth) {
-                    label.textContent = `${month + 1}月`;
-                    lastMonth = month;
-                }
+                label.textContent = monthLabel;
                 heatmapMonths.appendChild(label);
+            });
+
+            for (let i = 0; i < heatmapStartOffset; i += 1) {
+                const placeholder = document.createElement("div");
+                placeholder.className = "w-3 h-3 pointer-events-none opacity-0";
+                heatmap.appendChild(placeholder);
             }
 
             for (let i = 0; i < totalHeatmapDays; i += 1) {
@@ -1856,50 +1767,257 @@
                 const colorClass = heatColors[(i * 7) % heatColors.length];
                 block.className = `w-3 h-3 rounded-[3px] transition-all duration-150 hover:scale-110 cursor-pointer ${colorClass}`;
 
-                const dateOffset = totalHeatmapDays - 1 - i;
-                const date = new Date(today);
-                date.setDate(today.getDate() - dateOffset);
-                const dateString = date.toISOString().split("T")[0];
+                const date = new Date(heatmapStart);
+                date.setDate(heatmapStart.getDate() + i);
+                const dateString = formatLocalDate(date);
                 const count = (i * 3) % 9;
 
-                const tooltip = document.createElement("div");
-                tooltip.className =
-                    "absolute hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-white text-slate-800 border border-slate-100 rounded-lg shadow-xl text-[11px] font-medium whitespace-nowrap z-50 pointer-events-none select-none";
-                tooltip.innerHTML =
+                const tooltipHtml =
                     count === 0
                         ? `<span class="text-slate-400">No commits on</span> <span class="font-semibold text-slate-600">${dateString}</span>`
                         : `<span class="font-bold text-slate-900">${count} commits</span> <span class="text-slate-400">on</span> <span class="font-semibold text-slate-600">${dateString}</span>`;
+                bindFloatingTooltip(
+                    block,
+                    tooltipHtml,
+                    "fixed z-[9999] pointer-events-none select-none whitespace-nowrap rounded-lg border border-slate-100 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-800 shadow-xl",
+                );
 
                 wrapper.appendChild(block);
-                wrapper.appendChild(tooltip);
                 heatmap.appendChild(wrapper);
             }
 
+            function getUsageDayMetrics(totalDays) {
+                if (totalDays >= 800) return { width: 4, gap: 4 };
+                if (totalDays >= 365) return { width: 5, gap: 5 };
+                if (totalDays >= 180) return { width: 7, gap: 6 };
+                if (totalDays >= 90) return { width: 10, gap: 7 };
+                return { width: 14, gap: 8 };
+            }
+
+            const usageScroller = document.getElementById("usageScroller");
+            const usageTrack = document.getElementById("usageTrack");
             const usageChart = document.getElementById("usageChart");
-            const usageXAxis = document.getElementById("usageXAxis");
-            const labels = ["1月", "2月", "3月", "4月", "5月", "6月"];
-            labels.forEach((label) => {
-                const tick = document.createElement("span");
-                tick.textContent = label;
-                usageXAxis.appendChild(tick);
+            const usageBaseline = document.getElementById("usageBaseline");
+            const usageLegend = document.getElementById("usageLegend");
+            const usageProviders = [
+                { name: "Mimo", color: "#2563EB" },
+                { name: "Ruoli", color: "#0F9488" },
+                { name: "aionew", color: "#F36B16" },
+                { name: "IKUN", color: "#8B5CF6" },
+                { name: "SiliconFlow", color: "#E11D48" },
+                { name: "Zhipu AI", color: "#22A65A" },
+                { name: "RuoliGemini", color: "#C98206" },
+                { name: "OpenAI", color: "#1596AD" },
+            ];
+
+            function getStableHash(value) {
+                return Array.from(value).reduce(
+                    (hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0,
+                    0,
+                );
+            }
+
+            function getProviderColor(providerName, index) {
+                const existing = usageProviders.find(
+                    (provider) => provider.name === providerName,
+                );
+                if (existing?.color) return existing.color;
+
+                const hash = getStableHash(providerName);
+                const hueBands = [
+                    [205, 252],
+                    [176, 200],
+                    [142, 168],
+                    [262, 306],
+                    [318, 352],
+                    [6, 22],
+                    [98, 130],
+                ];
+                const band = hueBands[hash % hueBands.length];
+                const spread =
+                    ((hash * 0.61803398875 + index * 0.38196601125) % 1 + 1) %
+                    1;
+                const hue = band[0] + (band[1] - band[0]) * spread;
+                const lightnessSteps = [0.68, 0.72, 0.76, 0.7, 0.74, 0.78];
+                const chromaSteps = [0.11, 0.125, 0.14, 0.105, 0.13];
+                const lightness =
+                    lightnessSteps[hash % lightnessSteps.length];
+                const chroma =
+                    chromaSteps[
+                        Math.floor(hash / lightnessSteps.length + index) %
+                            chromaSteps.length
+                    ];
+                return `oklch(${lightness} ${chroma} ${hue.toFixed(1)} / 0.92)`;
+            }
+
+            function formatTokenCount(value) {
+                return `${Math.round(value).toLocaleString("en-US")} tokens`;
+            }
+
+            function dateKey(date) {
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+            }
+
+            const usageTotalDays = 30;
+            const usageMetrics = getUsageDayMetrics(usageTotalDays);
+            const usageTrackWidth =
+                usageTotalDays * usageMetrics.width +
+                (usageTotalDays - 1) * usageMetrics.gap;
+            usageTrack.style.width = `${usageTrackWidth}px`;
+            usageChart.style.gap = `${usageMetrics.gap}px`;
+            usageBaseline.style.gap = `${usageMetrics.gap}px`;
+
+            const usageRecentOverrides = {
+                1: { aionew: 44120 },
+                4: { Ruoli: 17760, SiliconFlow: 17640, OpenAI: 17520 },
+                6: { aionew: 38640 },
+                8: { Ruoli: 28720, SiliconFlow: 22680 },
+                11: { aionew: 42180 },
+                13: { RuoliGemini: 34820 },
+                15: { Ruoli: 272475, aionew: 35047 },
+                18: { Ruoli: 22740, Mimo: 118640 },
+                20: { Mimo: 245280, aionew: 28480 },
+                22: { Mimo: 389420 },
+                24: { Mimo: 186720, IKUN: 61240 },
+                25: { SiliconFlow: 23860 },
+                27: { Mimo: 165300, IKUN: 72300 },
+                28: { IKUN: 46280 },
+                29: { Mimo: 51240, "Zhipu AI": 19880, SiliconFlow: 26840 },
+            };
+
+            const usageDays = Array.from({ length: usageTotalDays }, (_, index) => {
+                const date = new Date(today);
+                date.setDate(today.getDate() - (usageTotalDays - 1 - index));
+                const recentIndex = index - (usageTotalDays - 30);
+                const values = usageProviders
+                    .map((provider, providerIndex) => {
+                        const amount =
+                            usageRecentOverrides[recentIndex]?.[
+                                provider.name
+                            ] ?? 0;
+                        return {
+                            ...provider,
+                            color: getProviderColor(provider.name, providerIndex),
+                            amount,
+                        };
+                    })
+                    .filter((provider) => provider.amount > 0);
+                return {
+                    date,
+                    values,
+                    total: values.reduce(
+                        (sum, provider) => sum + provider.amount,
+                        0,
+                    ),
+                };
             });
-            for (let i = 0; i < 24; i += 1) {
+            const usageMax = Math.max(...usageDays.map((day) => day.total));
+
+            usageProviders.forEach((provider, index) => {
+                const item = document.createElement("span");
+                item.className = "flex items-center gap-1.5 whitespace-nowrap";
+                item.innerHTML = `
+                    <span class="w-3.5 h-3.5 rounded-[4px]" style="background:${getProviderColor(provider.name, index)}"></span>
+                    ${provider.name}
+                `;
+                usageLegend.appendChild(item);
+            });
+
+            usageDays.forEach(() => {
+                const dash = document.createElement("span");
+                dash.className =
+                    "h-1 shrink-0 rounded-full bg-slate-200/80";
+                dash.style.width = `${usageMetrics.width}px`;
+                usageBaseline.appendChild(dash);
+            });
+
+            usageDays.forEach((day, dayIndex) => {
                 const bar = document.createElement("div");
                 bar.className =
-                    "group relative flex-1 h-full flex flex-col justify-end rounded-t-md overflow-hidden min-w-0";
-                const openai = 48 + ((i * 13) % 90);
-                const local = 22 + ((i * 9) % 52);
-                const gemini = 18 + ((i * 5) % 44);
-                const total = openai + local + gemini;
-                const scale = 100 / 280;
-                bar.title = `${total}k tokens`;
-                bar.innerHTML = `
-                    <div class="w-full bg-emerald-200/90" style="height:${gemini * scale}%"></div>
-                    <div class="w-full bg-slate-300/90" style="height:${local * scale}%"></div>
-                    <div class="w-full bg-slate-900" style="height:${openai * scale}%"></div>
-                `;
+                    "group relative flex h-full shrink-0 items-end justify-center";
+                bar.style.width = `${usageMetrics.width}px`;
+                const height = day.total
+                    ? Math.max(10, (day.total / usageMax) * 92)
+                    : 0;
+                const columnWidth = Math.max(usageMetrics.width, 4);
+                const dateLabel = formatLocalDate(day.date);
+                const segments = day.values
+                    .map(
+                        (provider) => `
+                            <div
+                                class="w-full"
+                                style="height:${(provider.amount / day.total) * 100}%; background:${provider.color}"
+                            ></div>
+                        `,
+                    )
+                    .join("");
+                const tooltipRows = day.values
+                    .map(
+                        (provider) => `
+                            <div class="flex items-center justify-between gap-4">
+                                <span class="flex items-center gap-1.5 font-medium text-slate-700">
+                                    <span class="w-2 h-2 rounded-full" style="background:${provider.color}"></span>
+                                    ${provider.name}
+                                </span>
+                                <span class="text-slate-600">${formatTokenCount(provider.amount)}</span>
+                            </div>
+                        `,
+                    )
+                    .join("");
+                bar.innerHTML = day.total
+                    ? `
+                        <div
+                            class="absolute bottom-0 hidden rounded-[5px] border-2 border-slate-400 bg-transparent group-hover:block pointer-events-none"
+                            style="height:calc(${height}% + 8px); width:${columnWidth + 8}px; transform:translateY(4px)"
+                        ></div>
+                        <div
+                            class="overflow-hidden rounded-[4px] bg-slate-100"
+                            style="height:${height}%; width:${columnWidth}px"
+                        >
+                            ${segments}
+                        </div>
+                    `
+                    : "";
+                if (day.total) {
+                    bindFloatingTooltip(
+                        bar,
+                        `
+                            <div class="mb-2 text-[13px] font-semibold tracking-tight text-slate-800">
+                                ${dateLabel}
+                            </div>
+                            <div class="space-y-1.5">
+                                ${tooltipRows}
+                            </div>
+                        `,
+                        "fixed z-[9999] pointer-events-none w-[208px] rounded-[12px] bg-slate-50/95 px-3 py-2.5 text-[11px] shadow-[0_12px_28px_rgba(15,23,42,0.11)] backdrop-blur-sm",
+                    );
+                }
                 usageChart.appendChild(bar);
-            }
+            });
+
+            usageScroller.addEventListener(
+                "wheel",
+                (event) => {
+                    const hasHorizontalOverflow =
+                        usageScroller.scrollWidth > usageScroller.clientWidth + 1;
+                    if (!hasHorizontalOverflow) return;
+
+                    const delta =
+                        Math.abs(event.deltaX) > Math.abs(event.deltaY)
+                            ? event.deltaX
+                            : event.deltaY;
+                    if (!delta) return;
+                    event.preventDefault();
+                    usageScroller.scrollLeft += delta;
+                },
+                { passive: false },
+            );
+            requestAnimationFrame(() => {
+                if (usageScroller.scrollWidth > usageScroller.clientWidth + 1) {
+                    usageScroller.scrollLeft =
+                        usageScroller.scrollWidth - usageScroller.clientWidth;
+                }
+            });
 
             const calendarDays = document.getElementById("calendarDays");
             for (let i = 1; i <= 30; i += 1) {
