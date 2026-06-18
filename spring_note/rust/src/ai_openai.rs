@@ -1,18 +1,14 @@
-use crate::ai::{AiChatRequest, AiModel, AiProvider, AiTextResult, extract_text, usage_from_value};
+use crate::ai::{
+    AiChatRequest, AiModel, AiProvider, AiTextResult, FimCompleteRequest, extract_text,
+    usage_from_value,
+};
 use crate::ai_log::{ApiNetworkLog, write_api_network_log};
 use reqwest::Client;
 use serde_json::{Value, json};
 use std::time::Instant;
 
 pub async fn chat(request: &AiChatRequest) -> Result<AiTextResult, String> {
-    let url = join_url(
-        &request.provider.base_url,
-        if request.provider.api_path.trim().is_empty() {
-            "/chat/completions"
-        } else {
-            &request.provider.api_path
-        },
-    );
+    let url = join_url(&request.provider.base_url, &request.provider.api_path);
     let body = build_chat_body(request);
     let request_body = body_to_string(&body);
     let started_at = Instant::now();
@@ -152,6 +148,73 @@ pub async fn fetch_models(
     Ok(models)
 }
 
+pub async fn fim_complete(request: &FimCompleteRequest) -> Result<AiTextResult, String> {
+    let chat_request = fim_as_chat_request(request);
+    let url = completions_url(&request.provider);
+    let body = build_fim_body(request);
+    let request_body = body_to_string(&body);
+    let started_at = Instant::now();
+    let response = Client::new()
+        .post(&url)
+        .bearer_auth(&request.provider.api_key)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|error| {
+            let message = error.to_string();
+            log_chat(
+                &chat_request,
+                "POST",
+                &url,
+                &request_body,
+                None,
+                "",
+                started_at,
+                &message,
+            );
+            message
+        })?;
+    let status = response.status();
+    let response_body = response.text().await.map_err(|error| {
+        let message = error.to_string();
+        log_chat(
+            &chat_request,
+            "POST",
+            &url,
+            &request_body,
+            Some(status.as_u16()),
+            "",
+            started_at,
+            &message,
+        );
+        message
+    })?;
+    log_chat(
+        &chat_request,
+        "POST",
+        &url,
+        &request_body,
+        Some(status.as_u16()),
+        &response_body,
+        started_at,
+        "",
+    );
+    if !status.is_success() {
+        return Err(format!("HTTP {status}: {response_body}"));
+    }
+    let value = serde_json::from_str::<Value>(&response_body).map_err(|error| error.to_string())?;
+    let content = extract_text(&value, &[&["choices", "0", "text"]])
+        .ok_or_else(|| "OpenAI-compatible FIM response missing choices[0].text".to_string())?;
+    let (input, output, cached) = usage_from_value(&value);
+    Ok(AiTextResult::success(
+        &chat_request,
+        content,
+        input,
+        output,
+        cached,
+    ))
+}
+
 pub fn build_chat_body(request: &AiChatRequest) -> Value {
     json!({
         "model": request.model.model_id,
@@ -163,7 +226,20 @@ pub fn build_chat_body(request: &AiChatRequest) -> Value {
     })
 }
 
+pub fn build_fim_body(request: &FimCompleteRequest) -> Value {
+    json!({
+        "model": request.model.model_id,
+        "prompt": request.prompt,
+        "suffix": request.suffix,
+        "max_tokens": 128,
+        "temperature": 0.2
+    })
+}
+
 fn join_url(base_url: &str, path: &str) -> String {
+    if path.trim().is_empty() {
+        return base_url.trim_end_matches('/').to_string();
+    }
     format!(
         "{}/{}",
         base_url.trim_end_matches('/'),
@@ -171,8 +247,24 @@ fn join_url(base_url: &str, path: &str) -> String {
     )
 }
 
+fn completions_url(provider: &AiProvider) -> String {
+    join_url(&provider.base_url, "/completions")
+}
+
 fn body_to_string(body: &Value) -> String {
     serde_json::to_string_pretty(body).unwrap_or_else(|_| body.to_string())
+}
+
+fn fim_as_chat_request(request: &FimCompleteRequest) -> AiChatRequest {
+    AiChatRequest {
+        app_data_dir: request.app_data_dir.clone(),
+        provider: request.provider.clone(),
+        model: request.model.clone(),
+        system_prompt: String::new(),
+        user_prompt: request.prompt.clone(),
+        purpose: "fim_edit_completion".to_string(),
+        api_log_enabled: request.api_log_enabled,
+    }
 }
 
 fn log_chat(
@@ -269,6 +361,94 @@ mod tests {
         assert_eq!(
             join_url("https://api.example.com/v1/", "/chat/completions"),
             "https://api.example.com/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn empty_api_path_uses_configured_base_url_as_endpoint() {
+        assert_eq!(
+            join_url("https://api.example.com/v1/chat/completions/", ""),
+            "https://api.example.com/v1/chat/completions"
+        );
+    }
+
+    #[test]
+    fn builds_fim_payload_with_prompt_and_suffix() {
+        let request = FimCompleteRequest {
+            app_data_dir: ".".to_string(),
+            provider: AiProvider {
+                id: "p".to_string(),
+                name: "OpenAI Compatible".to_string(),
+                protocol: "openaiCompatible".to_string(),
+                api_key: "key".to_string(),
+                base_url: "https://api.example.com/v1".to_string(),
+                api_path: "/completions".to_string(),
+            },
+            model: AiModel {
+                model_id: "fim-test".to_string(),
+                display_name: "FIM Test".to_string(),
+            },
+            prompt: "prefix".to_string(),
+            suffix: "suffix".to_string(),
+            api_log_enabled: false,
+        };
+
+        let body = build_fim_body(&request);
+        assert_eq!(body["model"], "fim-test");
+        assert_eq!(body["prompt"], "prefix");
+        assert_eq!(body["suffix"], "suffix");
+        assert_eq!(body["max_tokens"], 128);
+        assert!(body.get("messages").is_none());
+    }
+
+    #[test]
+    fn fim_uses_completions_endpoint_not_chat_completions() {
+        let provider = AiProvider {
+            id: "p".to_string(),
+            name: "OpenAI Compatible".to_string(),
+            protocol: "openaiCompatible".to_string(),
+            api_key: "key".to_string(),
+            base_url: "https://api.example.com/v1".to_string(),
+            api_path: "/chat/completions".to_string(),
+        };
+
+        assert_eq!(
+            completions_url(&provider),
+            "https://api.example.com/v1/completions"
+        );
+    }
+
+    #[test]
+    fn fim_ignores_configured_api_path() {
+        let provider = AiProvider {
+            id: "p".to_string(),
+            name: "OpenAI Compatible".to_string(),
+            protocol: "openaiCompatible".to_string(),
+            api_key: "key".to_string(),
+            base_url: "https://api.example.com/v1".to_string(),
+            api_path: "/custom/fim".to_string(),
+        };
+
+        assert_eq!(
+            completions_url(&provider),
+            "https://api.example.com/v1/completions"
+        );
+    }
+
+    #[test]
+    fn fim_uses_completions_even_when_api_path_is_empty() {
+        let provider = AiProvider {
+            id: "p".to_string(),
+            name: "OpenAI Compatible".to_string(),
+            protocol: "openaiCompatible".to_string(),
+            api_key: "key".to_string(),
+            base_url: "https://api.example.com/v1".to_string(),
+            api_path: String::new(),
+        };
+
+        assert_eq!(
+            completions_url(&provider),
+            "https://api.example.com/v1/completions"
         );
     }
 }

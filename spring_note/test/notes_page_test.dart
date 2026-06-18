@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:spring_note/core/models/app_config.dart';
 import 'package:spring_note/core/models/local_data_state.dart';
+import 'package:spring_note/core/models/model_config.dart';
 import 'package:spring_note/core/models/note_file.dart';
+import 'package:spring_note/core/models/provider_config.dart';
+import 'package:spring_note/core/services/ai_client_service.dart';
 import 'package:spring_note/core/services/note_service.dart';
 import 'package:spring_note/core/theme/app_theme.dart';
 import 'package:spring_note/features/notes/notes_page.dart';
@@ -109,6 +113,210 @@ final value = 1;
 
     expect(find.text('周报'), findsWidgets);
   });
+
+  testWidgets('notes editor debounces FIM and accepts full prediction', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final noteService = _MemoryNoteService({
+      'D:\\Temp\\SpringNote\\notes\\daily\\2026-06-18.md': '# 日报\n',
+    });
+    final aiClientService = _FakeAiClientService('补全文字\n第二行');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: NotesPage(
+          localDataState: _fimLocalDataState,
+          noteService: noteService,
+          aiClientService: aiClientService,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final editor = find.byType(TextField).last;
+    await tester.enterText(editor, '# 日报\n我完成');
+    await tester.pump(const Duration(milliseconds: 120));
+    await tester.enterText(editor, '# 日报\n我完成了');
+    await tester.pump(const Duration(milliseconds: 120));
+    await tester.enterText(editor, '# 日报\n我完成了登录');
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(aiClientService.calls, 1);
+    expect(aiClientService.lastPrompt, '# 日报\n我完成了登录');
+    expect(_editablePlainText(tester), contains('补全文字'));
+    expect(_editableRealText(tester), isNot(contains('补全文字')));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+
+    expect(noteService.contents.values.single, contains('我完成了登录补全文字\n第二行'));
+  });
+
+  testWidgets('notes editor accepts one predicted line with Ctrl+L', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final noteService = _MemoryNoteService({
+      'D:\\Temp\\SpringNote\\notes\\daily\\2026-06-18.md': '# 日报\n',
+    });
+    final aiClientService = _FakeAiClientService('第一行\n第二行');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: NotesPage(
+          localDataState: _fimLocalDataState,
+          noteService: noteService,
+          aiClientService: aiClientService,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField).last, '# 日报\n前缀');
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyL);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(noteService.contents.values.single, '# 日报\n前缀第一行\n');
+    expect(aiClientService.calls, 1);
+    expect(_editablePlainText(tester), contains('第二行'));
+    expect(_editableRealText(tester), isNot(contains('第二行')));
+  });
+
+  testWidgets('notes editor accepts one visible character with Ctrl+K', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final noteService = _MemoryNoteService({
+      'D:\\Temp\\SpringNote\\notes\\daily\\2026-06-18.md': '# 日报\n',
+    });
+    final aiClientService = _FakeAiClientService('你好');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: NotesPage(
+          localDataState: _fimLocalDataState,
+          noteService: noteService,
+          aiClientService: aiClientService,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField).last, '# 日报\n前缀');
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyK);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(aiClientService.calls, 1);
+    expect(noteService.contents.values.single, '# 日报\n前缀你');
+    expect(_editablePlainText(tester), contains('好'));
+    expect(_editableRealText(tester), isNot(contains('好')));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+
+    expect(noteService.contents.values.single, '# 日报\n前缀你好');
+  });
+
+  testWidgets('notes editor inserts tab when there is no FIM prediction', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final noteService = _MemoryNoteService({
+      'D:\\Temp\\SpringNote\\notes\\daily\\2026-06-18.md': '# 日报\n',
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: NotesPage(
+          localDataState: _localDataState,
+          noteService: noteService,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField).last, '# 日报\n前缀');
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+
+    expect(noteService.contents.values.single, '# 日报\n前缀\t');
+  });
+
+  testWidgets('notes editor shows FIM unavailable reason', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final noteService = _MemoryNoteService({
+      'D:\\Temp\\SpringNote\\notes\\daily\\2026-06-18.md': '# 日报\n',
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: NotesPage(
+          localDataState: _localDataState,
+          noteService: noteService,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.enterText(find.byType(TextField).last, '# 日报\n前缀');
+    await tester.pump(const Duration(milliseconds: 350));
+
+    expect(find.textContaining('FIM 未触发：未选择编辑补全模型'), findsOneWidget);
+  });
+}
+
+String _editablePlainText(WidgetTester tester) {
+  final finder = find.byType(EditableText).last;
+  final editableText = tester.widget<EditableText>(finder);
+  final context = tester.element(finder);
+  return editableText.controller
+      .buildTextSpan(
+        context: context,
+        style: editableText.style,
+        withComposing: false,
+      )
+      .toPlainText();
+}
+
+String _editableRealText(WidgetTester tester) {
+  final editableText = tester.widget<EditableText>(
+    find.byType(EditableText).last,
+  );
+  return editableText.controller.text;
 }
 
 final _localDataState = LocalDataState(
@@ -118,6 +326,39 @@ final _localDataState = LocalDataState(
   weeklyNotesDirectory: 'D:\\Temp\\SpringNote\\notes\\weekly',
   monthlyNotesDirectory: 'D:\\Temp\\SpringNote\\notes\\monthly',
   config: AppConfig.defaults(),
+);
+
+final _fimLocalDataState = LocalDataState(
+  dataDirectory: 'D:\\Temp\\SpringNote',
+  configPath: 'D:\\Temp\\SpringNote\\config.json',
+  dailyNotesDirectory: 'D:\\Temp\\SpringNote\\notes\\daily',
+  weeklyNotesDirectory: 'D:\\Temp\\SpringNote\\notes\\weekly',
+  monthlyNotesDirectory: 'D:\\Temp\\SpringNote\\notes\\monthly',
+  config: AppConfig.defaults().copyWith(
+    providers: const [
+      ProviderConfig(
+        id: 'openai-compatible',
+        enabled: true,
+        name: 'OpenAI Compatible',
+        protocol: 'openaiCompatible',
+        apiKey: 'test-key',
+        baseUrl: 'https://api.example.com/v1',
+        apiPath: '/completions',
+        models: [
+          ModelConfig(
+            modelId: 'fim-model',
+            displayName: 'FIM Model',
+            modelTypes: ['completion'],
+          ),
+        ],
+      ),
+    ],
+    defaultModels: {
+      'intelligentGenerationModel': null,
+      'editCompletionModel': 'fim-model',
+      'memoryBookModel': null,
+    },
+  ),
 );
 
 class _MemoryNoteService extends NoteService {
@@ -179,5 +420,28 @@ class _MemoryNoteService extends NoteService {
       kind: kind,
       preview: content.replaceAll('\n', ' '),
     );
+  }
+}
+
+class _FakeAiClientService extends AiClientService {
+  _FakeAiClientService(this.prediction);
+
+  final String prediction;
+  int get calls => _calls;
+  String get lastPrompt => _lastPrompt;
+
+  int _calls = 0;
+  String _lastPrompt = '';
+
+  @override
+  Future<String?> fimCompleteMarkdown({
+    required String appDataDir,
+    required AppConfig config,
+    required String prompt,
+    required String suffix,
+  }) async {
+    _calls++;
+    _lastPrompt = prompt;
+    return prediction;
   }
 }

@@ -91,4 +91,38 @@ mod tests {
         assert!(content.contains("完整响应"));
         fs::remove_dir_all(dir).ok();
     }
+
+    #[test]
+    fn writes_fim_request_and_response_body() {
+        let suffix = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("spring_note_fim_api_log_{suffix}"));
+        let app_data_dir = dir.to_string_lossy().to_string();
+
+        write_api_network_log(ApiNetworkLog {
+            app_data_dir: &app_data_dir,
+            enabled: true,
+            provider_id: "p",
+            provider_name: "OpenAI Compatible",
+            protocol: "openaiCompatible",
+            model_id: "deepseek-v4-pro",
+            purpose: "fim_edit_completion",
+            method: "POST",
+            url: "https://api.example.com/v1/completions",
+            request_body: r#"{"model":"deepseek-v4-pro","prompt":"def fib(a):","suffix":"    return fib(a-1) + fib(a-2)","max_tokens":128}"#,
+            response_status: Some(200),
+            response_body: r#"{"choices":[{"text":"\n    if a <= 1:\n        return a"}]}"#,
+            duration_ms: 12,
+            error: "",
+        });
+
+        let content = fs::read_to_string(dir.join("logs").join("api_network.log")).unwrap();
+        assert!(content.contains("fim_edit_completion"));
+        assert!(content.contains("def fib(a):"));
+        assert!(content.contains("return fib(a-1) + fib(a-2)"));
+        assert!(content.contains("if a <= 1"));
+        fs::remove_dir_all(dir).ok();
+    }
 }

@@ -312,33 +312,10 @@ Rust 对 Flutter 暴露的方法建议包括：
 * Ctrl + K 接收单个字
 * Rust 侧实现统一 FIM 请求结构
 * Rust 侧实现统一 `completions + prompt/suffix` FIM 调用
-* DeepSeek 和硅基流动都通过同一个 FIM adapter 走 completions
-
-FIM 统一规则：
-
-* `fimMode` 只保留 `none / completions`
-* 默认 `fimMode` 为 `none`
-* 只有模型明确支持 FIM 时才设置为 `completions`
-* FIM 请求走 completions
-* FIM 请求传 `prompt` 和 `suffix`
-* FIM 不走 chat.completions
-* FIM 不使用 messages
-
-DeepSeek FIM：
-
-* Base URL 使用 `https://api.deepseek.com/beta` 或用户配置的 DeepSeek Beta Base URL
-* 请求走 completions
 * `prompt` 表示 prefix
 * `suffix` 表示后缀
 * 返回读取 `choices[0].text`
 
-硅基流动 FIM：
-
-* Base URL 使用 `https://api.siliconflow.cn/v1` 或用户配置的 Base URL
-* 请求走 completions
-* `prompt` 表示 prefix
-* `suffix` 表示后缀
-* 支持 stream 或非 stream；MVP 可先非 stream
 
 约束：
 
@@ -352,8 +329,6 @@ DeepSeek FIM：
 * 连续输入不会重复调用模型
 * 停止输入 300ms 后触发补全
 * Tab / Ctrl+L / Ctrl+K 接收逻辑正确
-* DeepSeek FIM 请求走 completions，并传 prompt + suffix
-* 硅基流动 FIM 请求走 completions，并传 prompt + suffix
 * FIM 请求不走 chat.completions
 
 完成后请运行：
@@ -393,9 +368,9 @@ DeepSeek FIM：
 * 日报数
 * 周报数
 * 月报数
-* 输入 Tokens
-* 输出 Tokens
-* 缓存 Tokens
+* 输入 Tokens(包含FIM 智能生成 回忆书)
+* 输出 Tokens(包含FIM 智能生成 回忆书)
+* 缓存 Tokens(包含FIM 智能生成 回忆书)
 * 应用启动次数
 
 热力图要求：

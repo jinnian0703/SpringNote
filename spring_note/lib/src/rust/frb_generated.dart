@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.12.0';
 
   @override
-  int get rustContentHash => 1924610931;
+  int get rustContentHash => -154967618;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -83,6 +83,10 @@ abstract class RustLibApi extends BaseApi {
     required String appDataDir,
     required AiProvider provider,
     required bool apiLogEnabled,
+  });
+
+  Future<AiTextResult> crateApiAiApiFimComplete({
+    required FimCompleteRequest request,
   });
 
   Future<AiTextResult> crateApiAiApiGenerateMonthlyReport({
@@ -161,6 +165,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
+  Future<AiTextResult> crateApiAiApiFimComplete({
+    required FimCompleteRequest request,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_box_autoadd_fim_complete_request(request, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 2,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_ai_text_result,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiAiApiFimCompleteConstMeta,
+        argValues: [request],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiAiApiFimCompleteConstMeta =>
+      const TaskConstMeta(debugName: "fim_complete", argNames: ["request"]);
+
+  @override
   Future<AiTextResult> crateApiAiApiGenerateMonthlyReport({
     required ReportRequest request,
   }) {
@@ -172,7 +206,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 2,
+            funcId: 3,
             port: port_,
           );
         },
@@ -205,7 +239,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 4,
             port: port_,
           );
         },
@@ -238,7 +272,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 5,
             port: port_,
           );
         },
@@ -268,7 +302,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 6,
             port: port_,
           );
         },
@@ -298,7 +332,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 7,
             port: port_,
           );
         },
@@ -328,7 +362,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 8,
             port: port_,
           );
         },
@@ -364,7 +398,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 9,
             port: port_,
           );
         },
@@ -463,6 +497,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  FimCompleteRequest dco_decode_box_autoadd_fim_complete_request(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_fim_complete_request(raw);
+  }
+
+  @protected
   MemoryChatRequest dco_decode_box_autoadd_memory_chat_request(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_memory_chat_request(raw);
@@ -499,6 +539,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       plans: dco_decode_list_String(arr[7]),
       date: dco_decode_String(arr[8]),
       apiLogEnabled: dco_decode_bool(arr[9]),
+    );
+  }
+
+  @protected
+  FimCompleteRequest dco_decode_fim_complete_request(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return FimCompleteRequest(
+      appDataDir: dco_decode_String(arr[0]),
+      provider: dco_decode_ai_provider(arr[1]),
+      model: dco_decode_ai_model(arr[2]),
+      prompt: dco_decode_String(arr[3]),
+      suffix: dco_decode_String(arr[4]),
+      apiLogEnabled: dco_decode_bool(arr[5]),
     );
   }
 
@@ -718,6 +774,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  FimCompleteRequest sse_decode_box_autoadd_fim_complete_request(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_fim_complete_request(deserializer));
+  }
+
+  @protected
   MemoryChatRequest sse_decode_box_autoadd_memory_chat_request(
     SseDeserializer deserializer,
   ) {
@@ -766,6 +830,27 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       issues: var_issues,
       plans: var_plans,
       date: var_date,
+      apiLogEnabled: var_apiLogEnabled,
+    );
+  }
+
+  @protected
+  FimCompleteRequest sse_decode_fim_complete_request(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_appDataDir = sse_decode_String(deserializer);
+    var var_provider = sse_decode_ai_provider(deserializer);
+    var var_model = sse_decode_ai_model(deserializer);
+    var var_prompt = sse_decode_String(deserializer);
+    var var_suffix = sse_decode_String(deserializer);
+    var var_apiLogEnabled = sse_decode_bool(deserializer);
+    return FimCompleteRequest(
+      appDataDir: var_appDataDir,
+      provider: var_provider,
+      model: var_model,
+      prompt: var_prompt,
+      suffix: var_suffix,
       apiLogEnabled: var_apiLogEnabled,
     );
   }
@@ -1005,6 +1090,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_fim_complete_request(
+    FimCompleteRequest self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_fim_complete_request(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_memory_chat_request(
     MemoryChatRequest self,
     SseSerializer serializer,
@@ -1046,6 +1140,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_list_String(self.issues, serializer);
     sse_encode_list_String(self.plans, serializer);
     sse_encode_String(self.date, serializer);
+    sse_encode_bool(self.apiLogEnabled, serializer);
+  }
+
+  @protected
+  void sse_encode_fim_complete_request(
+    FimCompleteRequest self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.appDataDir, serializer);
+    sse_encode_ai_provider(self.provider, serializer);
+    sse_encode_ai_model(self.model, serializer);
+    sse_encode_String(self.prompt, serializer);
+    sse_encode_String(self.suffix, serializer);
     sse_encode_bool(self.apiLogEnabled, serializer);
   }
 

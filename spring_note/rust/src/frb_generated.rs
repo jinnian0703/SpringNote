@@ -38,7 +38,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1924610931;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -154967618;
 
 // Section: executor
 
@@ -82,6 +82,44 @@ fn wire__crate__api__ai_api__fetch_provider_models_impl(
                                 api_api_log_enabled,
                             )
                             .await,
+                        )?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__ai_api__fim_complete_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "fim_complete",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_request = <crate::ai::FimCompleteRequest>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Result::<_, ()>::Ok(
+                            crate::api::ai_api::fim_complete(api_request).await,
                         )?;
                         Ok(output_ok)
                     })()
@@ -466,6 +504,26 @@ impl SseDecode for crate::ai::DailyMergeRequest {
     }
 }
 
+impl SseDecode for crate::ai::FimCompleteRequest {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_appDataDir = <String>::sse_decode(deserializer);
+        let mut var_provider = <crate::ai::AiProvider>::sse_decode(deserializer);
+        let mut var_model = <crate::ai::AiModel>::sse_decode(deserializer);
+        let mut var_prompt = <String>::sse_decode(deserializer);
+        let mut var_suffix = <String>::sse_decode(deserializer);
+        let mut var_apiLogEnabled = <bool>::sse_decode(deserializer);
+        return crate::ai::FimCompleteRequest {
+            app_data_dir: var_appDataDir,
+            provider: var_provider,
+            model: var_model,
+            prompt: var_prompt,
+            suffix: var_suffix,
+            api_log_enabled: var_apiLogEnabled,
+        };
+    }
+}
+
 impl SseDecode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -649,25 +707,26 @@ fn pde_ffi_dispatcher_primary_impl(
         1 => {
             wire__crate__api__ai_api__fetch_provider_models_impl(port, ptr, rust_vec_len, data_len)
         }
-        2 => wire__crate__api__ai_api__generate_monthly_report_impl(
+        2 => wire__crate__api__ai_api__fim_complete_impl(port, ptr, rust_vec_len, data_len),
+        3 => wire__crate__api__ai_api__generate_monthly_report_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        3 => wire__crate__api__ai_api__generate_structured_note_impl(
+        4 => wire__crate__api__ai_api__generate_structured_note_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        4 => {
+        5 => {
             wire__crate__api__ai_api__generate_weekly_report_impl(port, ptr, rust_vec_len, data_len)
         }
-        5 => wire__crate__api__ai_api__init_app_impl(port, ptr, rust_vec_len, data_len),
-        6 => wire__crate__api__ai_api__memory_chat_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__ai_api__merge_daily_note_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__ai_api__test_provider_connection_impl(
+        6 => wire__crate__api__ai_api__init_app_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__ai_api__memory_chat_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__ai_api__merge_daily_note_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__ai_api__test_provider_connection_impl(
             port,
             ptr,
             rust_vec_len,
@@ -773,6 +832,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::ai::DailyMergeRequest>
     for crate::ai::DailyMergeRequest
 {
     fn into_into_dart(self) -> crate::ai::DailyMergeRequest {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::ai::FimCompleteRequest {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.app_data_dir.into_into_dart().into_dart(),
+            self.provider.into_into_dart().into_dart(),
+            self.model.into_into_dart().into_dart(),
+            self.prompt.into_into_dart().into_dart(),
+            self.suffix.into_into_dart().into_dart(),
+            self.api_log_enabled.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::ai::FimCompleteRequest {}
+impl flutter_rust_bridge::IntoIntoDart<crate::ai::FimCompleteRequest>
+    for crate::ai::FimCompleteRequest
+{
+    fn into_into_dart(self) -> crate::ai::FimCompleteRequest {
         self
     }
 }
@@ -970,6 +1051,18 @@ impl SseEncode for crate::ai::DailyMergeRequest {
         <Vec<String>>::sse_encode(self.issues, serializer);
         <Vec<String>>::sse_encode(self.plans, serializer);
         <String>::sse_encode(self.date, serializer);
+        <bool>::sse_encode(self.api_log_enabled, serializer);
+    }
+}
+
+impl SseEncode for crate::ai::FimCompleteRequest {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.app_data_dir, serializer);
+        <crate::ai::AiProvider>::sse_encode(self.provider, serializer);
+        <crate::ai::AiModel>::sse_encode(self.model, serializer);
+        <String>::sse_encode(self.prompt, serializer);
+        <String>::sse_encode(self.suffix, serializer);
         <bool>::sse_encode(self.api_log_enabled, serializer);
     }
 }

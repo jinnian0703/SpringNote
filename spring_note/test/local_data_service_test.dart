@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:spring_note/core/models/model_config.dart';
 import 'package:spring_note/core/models/provider_config.dart';
 import 'package:spring_note/core/services/local_data_service.dart';
 
@@ -58,8 +59,31 @@ void main() {
     expect(reloaded.providers.first.name, 'OpenAI');
     expect(reloaded.providers.first.models.first.fimMode, 'none');
     expect(
+      reloaded.providers.first.models.first.toJson().keys,
+      isNot(contains('fimMode')),
+    );
+    expect(
       reloaded.defaultModels['intelligentGenerationModel'],
       'gpt-4.1-mini',
     );
+  });
+
+  test('model config derives FIM mode from completion model type', () {
+    const completionModel = ModelConfig(
+      modelId: 'fim-model',
+      displayName: 'FIM Model',
+      modelTypes: ['chat', 'completion'],
+    );
+    expect(completionModel.fimMode, 'completions');
+    expect(completionModel.toJson().keys, isNot(contains('fimMode')));
+
+    final migrated = ModelConfig.fromJson({
+      'modelId': 'legacy-fim-model',
+      'displayName': 'Legacy FIM Model',
+      'modelTypes': ['chat'],
+      'fimMode': 'completions',
+    });
+    expect(migrated.modelTypes, contains('completion'));
+    expect(migrated.fimMode, 'completions');
   });
 }

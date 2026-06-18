@@ -900,9 +900,11 @@ class _DefaultModelsPanel extends StatelessWidget {
         ),
         _DefaultModelCard(
           title: '编辑补全模型',
-          description: '用于便签页 FIM 补全，优先选择支持 completions FIM 的补全模型。',
+          description: '用于便签页补全。模型类型包含补全时，默认按 completions FIM 调用。',
           value: config.defaultModels['editCompletionModel'],
-          models: models,
+          models: models
+              .where((model) => model.modelTypes.contains('completion'))
+              .toList(),
           onSelected: (value) => _setDefault('editCompletionModel', value),
         ),
         _DefaultModelCard(
@@ -1376,7 +1378,6 @@ class _EditModelDialogState extends State<_EditModelDialog> {
   late List<String> _modelTypes = [...widget.model.modelTypes];
   late List<String> _inputModes = [...widget.model.inputModes];
   late List<String> _capabilities = [...widget.model.capabilities];
-  late String _fimMode = widget.model.fimMode;
 
   @override
   void dispose() {
@@ -1417,18 +1418,6 @@ class _EditModelDialogState extends State<_EditModelDialog> {
             selected: _capabilities,
             onChanged: (value) => setState(() => _capabilities = value),
           ),
-          const SizedBox(height: 12),
-          Text('FIM 模式', style: Theme.of(context).textTheme.labelLarge),
-          const SizedBox(height: 8),
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'none', label: Text('none')),
-              ButtonSegment(value: 'completions', label: Text('completions')),
-            ],
-            selected: {_fimMode},
-            onSelectionChanged: (value) =>
-                setState(() => _fimMode = value.first),
-          ),
           const SizedBox(height: 18),
           Align(
             alignment: Alignment.centerRight,
@@ -1443,7 +1432,6 @@ class _EditModelDialogState extends State<_EditModelDialog> {
                     modelTypes: _modelTypes,
                     inputModes: _inputModes,
                     capabilities: _capabilities,
-                    fimMode: _fimMode,
                   ),
                 );
               },

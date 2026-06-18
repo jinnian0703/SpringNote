@@ -169,6 +169,45 @@ class DailyMergeRequest {
           apiLogEnabled == other.apiLogEnabled;
 }
 
+class FimCompleteRequest {
+  final String appDataDir;
+  final AiProvider provider;
+  final AiModel model;
+  final String prompt;
+  final String suffix;
+  final bool apiLogEnabled;
+
+  const FimCompleteRequest({
+    required this.appDataDir,
+    required this.provider,
+    required this.model,
+    required this.prompt,
+    required this.suffix,
+    required this.apiLogEnabled,
+  });
+
+  @override
+  int get hashCode =>
+      appDataDir.hashCode ^
+      provider.hashCode ^
+      model.hashCode ^
+      prompt.hashCode ^
+      suffix.hashCode ^
+      apiLogEnabled.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FimCompleteRequest &&
+          runtimeType == other.runtimeType &&
+          appDataDir == other.appDataDir &&
+          provider == other.provider &&
+          model == other.model &&
+          prompt == other.prompt &&
+          suffix == other.suffix &&
+          apiLogEnabled == other.apiLogEnabled;
+}
+
 class MemoryChatRequest {
   final String appDataDir;
   final AiProvider provider;

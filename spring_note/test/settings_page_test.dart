@@ -83,47 +83,62 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('add-model-id-field')),
-      'deepseek-chat',
+      'custom-chat-model',
     );
     await tester.enterText(
       find.byKey(const ValueKey('add-model-name-field')),
-      'DeepSeek Chat',
+      'Custom Chat Model',
     );
     await tester.tap(find.byKey(const ValueKey('confirm-add-model-button')));
     await tester.pumpAndSettle();
 
     expect(
       service.savedConfig.providers.first.models.map((model) => model.modelId),
-      contains('deepseek-chat'),
+      contains('custom-chat-model'),
     );
 
-    await tester.tap(find.byKey(const ValueKey('edit-model-deepseek-chat')));
+    await tester.tap(
+      find.byKey(const ValueKey('edit-model-custom-chat-model')),
+    );
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const ValueKey('edit-model-name-field')),
-      'DeepSeek Edited',
+      'Custom Chat Edited',
     );
-    await tester.tap(find.text('completions'));
+    expect(find.text('FIM 模式'), findsNothing);
+    await tester.tap(find.widgetWithText(FilterChip, '补全'));
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('confirm-edit-model-button')));
     await tester.pumpAndSettle();
 
     final edited = service.savedConfig.providers.first.models.firstWhere(
-      (model) => model.modelId == 'deepseek-chat',
+      (model) => model.modelId == 'custom-chat-model',
     );
-    expect(edited.displayName, 'DeepSeek Edited');
+    expect(edited.displayName, 'Custom Chat Edited');
+    expect(edited.modelTypes, contains('completion'));
     expect(edited.fimMode, 'completions');
 
     await tester.tap(find.text('默认模型').first);
     await tester.pump();
     await tester.tap(find.byKey(const ValueKey('default-model-智能生成模型')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('DeepSeek Edited').last);
+    await tester.tap(find.text('Custom Chat Edited').last);
     await tester.pumpAndSettle();
 
     expect(
       service.savedConfig.defaultModels['intelligentGenerationModel'],
-      'deepseek-chat',
+      'custom-chat-model',
+    );
+
+    await tester.tap(find.byKey(const ValueKey('default-model-编辑补全模型')));
+    await tester.pumpAndSettle();
+    expect(find.text('Custom Chat Edited'), findsWidgets);
+    expect(find.text('GPT-4.1 Mini'), findsNothing);
+    await tester.tap(find.text('Custom Chat Edited').last);
+    await tester.pumpAndSettle();
+    expect(
+      service.savedConfig.defaultModels['editCompletionModel'],
+      'custom-chat-model',
     );
   });
 
@@ -198,6 +213,8 @@ void main() {
       (model) => model.modelId == 'persist-model',
     );
     expect(persistedModel.displayName, 'Persist Model Edited');
+    final persistedJson = jsonDecode(configFile.readAsStringSync()).toString();
+    expect(persistedJson, isNot(contains('fimMode')));
   });
 }
 

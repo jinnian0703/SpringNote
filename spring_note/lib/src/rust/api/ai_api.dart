@@ -24,6 +24,9 @@ Future<AiTextResult> generateMonthlyReport({required ReportRequest request}) =>
 Future<AiTextResult> memoryChat({required MemoryChatRequest request}) =>
     RustLib.instance.api.crateApiAiApiMemoryChat(request: request);
 
+Future<AiTextResult> fimComplete({required FimCompleteRequest request}) =>
+    RustLib.instance.api.crateApiAiApiFimComplete(request: request);
+
 Future<ProviderTestResult> testProviderConnection({
   required String appDataDir,
   required AiProvider provider,

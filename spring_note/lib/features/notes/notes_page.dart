@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/models/local_data_state.dart';
 import '../../core/models/note_file.dart';
+import '../../core/services/ai_client_service.dart';
 import '../../core/services/note_service.dart';
 import '../../core/theme/app_theme.dart';
 import 'markdown_preview.dart';
@@ -11,29 +15,42 @@ class NotesPage extends StatefulWidget {
     super.key,
     required this.localDataState,
     this.noteService = const NoteService(),
+    this.aiClientService = const AiClientService(),
   });
 
   final LocalDataState localDataState;
   final NoteService noteService;
+  final AiClientService aiClientService;
 
   @override
   State<NotesPage> createState() => _NotesPageState();
 }
 
 class _NotesPageState extends State<NotesPage> {
-  final TextEditingController _editorController = TextEditingController();
+  final _FimTextEditingController _editorController =
+      _FimTextEditingController();
   final TextEditingController _searchController = TextEditingController();
+  late final FocusNode _editorFocusNode;
 
   NoteKind _kind = NoteKind.daily;
   List<NoteFile> _notes = [];
   NoteFile? _selectedNote;
   bool _loading = true;
   bool _saving = false;
+  bool _predicting = false;
   String _statusText = '正在加载';
+  String _lastEditorText = '';
+  TextSelection _lastEditorSelection = const TextSelection.collapsed(offset: 0);
+  Timer? _fimDebounce;
+  int _fimGeneration = 0;
+  String? _fimPrediction;
+  String? _fimMessage;
+  bool _consumingFimPrediction = false;
 
   @override
   void initState() {
     super.initState();
+    _editorFocusNode = FocusNode(onKeyEvent: _handleEditorKeyEvent);
     _editorController.addListener(_handleEditorChanged);
     _searchController.addListener(() => setState(() {}));
     _loadNotes(kind: _kind);
@@ -44,8 +61,38 @@ class _NotesPageState extends State<NotesPage> {
     _editorController
       ..removeListener(_handleEditorChanged)
       ..dispose();
+    _editorFocusNode.dispose();
+    _fimDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  KeyEventResult _handleEditorKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final logicalKey = event.logicalKey;
+    final controlPressed = HardwareKeyboard.instance.isControlPressed;
+    if (logicalKey == LogicalKeyboardKey.tab) {
+      if (_fimPrediction == null) {
+        _insertPlainText('\t');
+      } else {
+        _acceptFimPrediction(_FimAcceptMode.all);
+      }
+      return KeyEventResult.handled;
+    }
+    if (_fimPrediction == null) {
+      return KeyEventResult.ignored;
+    }
+    if (controlPressed && logicalKey == LogicalKeyboardKey.keyL) {
+      _acceptFimPrediction(_FimAcceptMode.line);
+      return KeyEventResult.handled;
+    }
+    if (controlPressed && logicalKey == LogicalKeyboardKey.keyK) {
+      _acceptFimPrediction(_FimAcceptMode.character);
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
   }
 
   Future<void> _loadNotes({
@@ -111,21 +158,45 @@ class _NotesPageState extends State<NotesPage> {
     });
   }
 
-  Future<void> _handleEditorChanged() async {
+  void _handleEditorChanged() {
     final selected = _selectedNote;
     if (_loading || selected == null) {
       return;
     }
 
+    final text = _editorController.text;
+    final selection = _editorController.selection;
+    final textChanged = text != _lastEditorText;
+    final selectionChanged = selection != _lastEditorSelection;
+
+    _lastEditorText = text;
+    _lastEditorSelection = selection;
+
+    if (_consumingFimPrediction) {
+      if (textChanged) {
+        _saveEditorText(selected, text);
+      }
+      return;
+    }
+
+    if (textChanged || selectionChanged) {
+      _invalidateFimPrediction(scheduleNext: true);
+    }
+
+    if (!textChanged) {
+      return;
+    }
+
+    _saveEditorText(selected, text);
+  }
+
+  Future<void> _saveEditorText(NoteFile selected, String text) async {
     setState(() {
       _saving = true;
       _statusText = '保存中';
     });
 
-    await widget.noteService.writeMarkdown(
-      selected.path,
-      _editorController.text,
-    );
+    await widget.noteService.writeMarkdown(selected.path, text);
     final updatedNotes = await widget.noteService.listMarkdownFiles(
       directoryPath: _directoryFor(_kind),
       kind: _kind,
@@ -152,6 +223,172 @@ class _NotesPageState extends State<NotesPage> {
       ..text = value
       ..selection = TextSelection.collapsed(offset: value.length)
       ..addListener(_handleEditorChanged);
+    _lastEditorText = value;
+    _lastEditorSelection = _editorController.selection;
+    _fimGeneration++;
+    _fimDebounce?.cancel();
+    _fimPrediction = null;
+    _predicting = false;
+    _fimMessage = null;
+    _editorController.clearFimPrediction();
+  }
+
+  void _invalidateFimPrediction({required bool scheduleNext}) {
+    _fimGeneration++;
+    _fimDebounce?.cancel();
+
+    if (_fimPrediction != null || _predicting) {
+      setState(() {
+        _fimPrediction = null;
+        _predicting = false;
+        _fimMessage = null;
+        _editorController.clearFimPrediction();
+      });
+    }
+
+    if (!scheduleNext || _selectedNote == null || _loading) {
+      return;
+    }
+
+    final generation = _fimGeneration;
+    final text = _editorController.text;
+    final selection = _editorController.selection;
+
+    if (!selection.isValid || !selection.isCollapsed) {
+      return;
+    }
+
+    final unavailableReason = widget.aiClientService.fimUnavailableReason(
+      widget.localDataState.config,
+    );
+    if (unavailableReason != null) {
+      setState(() => _fimMessage = 'FIM 未触发：$unavailableReason');
+      return;
+    }
+
+    if (_fimMessage != null) {
+      setState(() => _fimMessage = null);
+    }
+
+    _fimDebounce = Timer(const Duration(milliseconds: 300), () {
+      _requestFimPrediction(
+        generation: generation,
+        text: text,
+        selection: selection,
+      );
+    });
+  }
+
+  Future<void> _requestFimPrediction({
+    required int generation,
+    required String text,
+    required TextSelection selection,
+  }) async {
+    if (!mounted ||
+        generation != _fimGeneration ||
+        text != _editorController.text ||
+        selection != _editorController.selection) {
+      return;
+    }
+
+    setState(() => _predicting = true);
+    final offset = selection.baseOffset;
+    String? prediction;
+    try {
+      prediction = await widget.aiClientService.fimCompleteMarkdown(
+        appDataDir: widget.localDataState.dataDirectory,
+        config: widget.localDataState.config,
+        prompt: text.substring(0, offset),
+        suffix: text.substring(offset),
+      );
+    } catch (_) {
+      prediction = null;
+    }
+
+    if (!mounted ||
+        generation != _fimGeneration ||
+        text != _editorController.text ||
+        selection != _editorController.selection) {
+      return;
+    }
+
+    setState(() {
+      _predicting = false;
+      if (prediction?.isEmpty ?? true) {
+        _fimPrediction = null;
+        _fimMessage = 'FIM 已请求，但没有返回可用预测';
+      } else {
+        _fimPrediction = prediction;
+        _fimMessage = null;
+        _editorController.setFimPrediction(
+          prediction!,
+          offset: selection.baseOffset,
+        );
+      }
+    });
+  }
+
+  void _acceptFimPrediction(_FimAcceptMode mode) {
+    final prediction = _fimPrediction;
+    final selection = _editorController.selection;
+    if (prediction == null || prediction.isEmpty || !selection.isValid) {
+      return;
+    }
+
+    final accepted = switch (mode) {
+      _FimAcceptMode.all => prediction,
+      _FimAcceptMode.line => _firstPredictionLine(prediction),
+      _FimAcceptMode.character => prediction.characters.first,
+    };
+    final remaining = prediction.substring(accepted.length);
+
+    final text = _editorController.text;
+    final start = selection.start;
+    final end = selection.end;
+    final nextText = text.replaceRange(start, end, accepted);
+    final nextOffset = start + accepted.length;
+    _consumingFimPrediction = true;
+    _editorController.value = TextEditingValue(
+      text: nextText,
+      selection: TextSelection.collapsed(offset: nextOffset),
+    );
+    _consumingFimPrediction = false;
+
+    setState(() {
+      if (remaining.isEmpty) {
+        _fimPrediction = null;
+        _editorController.clearFimPrediction();
+      } else {
+        _fimPrediction = remaining;
+        _editorController.setFimPrediction(remaining, offset: nextOffset);
+      }
+      _fimMessage = null;
+    });
+  }
+
+  void _insertPlainText(String value) {
+    final selection = _editorController.selection;
+    if (!selection.isValid) {
+      return;
+    }
+
+    final text = _editorController.text;
+    final start = selection.start;
+    final end = selection.end;
+    final nextText = text.replaceRange(start, end, value);
+    final nextOffset = start + value.length;
+    _editorController.value = TextEditingValue(
+      text: nextText,
+      selection: TextSelection.collapsed(offset: nextOffset),
+    );
+  }
+
+  String _firstPredictionLine(String prediction) {
+    final newlineIndex = prediction.indexOf('\n');
+    if (newlineIndex == -1) {
+      return prediction;
+    }
+    return prediction.substring(0, newlineIndex + 1);
   }
 
   String _directoryFor(NoteKind kind) {
@@ -198,8 +435,10 @@ class _NotesPageState extends State<NotesPage> {
               padding: const EdgeInsets.fromLTRB(20, 24, 10, 24),
               child: _EditorPane(
                 controller: _editorController,
-                statusText: _saving ? '保存中' : _statusText,
+                focusNode: _editorFocusNode,
+                statusText: _editorStatusText,
                 enabled: selected != null && !_loading,
+                predicting: _predicting,
               ),
             ),
           ),
@@ -211,6 +450,82 @@ class _NotesPageState extends State<NotesPage> {
           ),
         ],
       ),
+    );
+  }
+
+  String get _editorStatusText {
+    if (_saving) {
+      return '保存中';
+    }
+    if (_predicting) {
+      return '补全预测中';
+    }
+    if (_fimPrediction != null) {
+      return 'Tab 全部 · Ctrl+L 单行 · Ctrl+K 单字';
+    }
+    if (_fimMessage != null) {
+      return _fimMessage!;
+    }
+    return _statusText;
+  }
+}
+
+enum _FimAcceptMode { all, line, character }
+
+class _FimTextEditingController extends TextEditingController {
+  String? _fimPrediction;
+  int? _fimOffset;
+
+  void setFimPrediction(String prediction, {required int offset}) {
+    final normalizedOffset = offset.clamp(0, text.length);
+    if (_fimPrediction == prediction && _fimOffset == normalizedOffset) {
+      return;
+    }
+    _fimPrediction = prediction;
+    _fimOffset = normalizedOffset;
+    notifyListeners();
+  }
+
+  void clearFimPrediction() {
+    if (_fimPrediction == null && _fimOffset == null) {
+      return;
+    }
+    _fimPrediction = null;
+    _fimOffset = null;
+    notifyListeners();
+  }
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final prediction = _fimPrediction;
+    final offset = _fimOffset;
+    if (prediction == null ||
+        prediction.isEmpty ||
+        offset == null ||
+        offset < 0 ||
+        offset > text.length) {
+      return super.buildTextSpan(
+        context: context,
+        style: style,
+        withComposing: withComposing,
+      );
+    }
+
+    final effectiveStyle = style ?? const TextStyle();
+    return TextSpan(
+      style: effectiveStyle,
+      children: [
+        TextSpan(text: text.substring(0, offset)),
+        TextSpan(
+          text: prediction,
+          style: effectiveStyle.copyWith(color: const Color(0xFF94A3B8)),
+        ),
+        TextSpan(text: text.substring(offset)),
+      ],
     );
   }
 }
@@ -411,16 +726,26 @@ class _NoteListItemState extends State<_NoteListItem> {
 class _EditorPane extends StatelessWidget {
   const _EditorPane({
     required this.controller,
+    required this.focusNode,
     required this.statusText,
     required this.enabled,
+    required this.predicting,
   });
 
   final TextEditingController controller;
+  final FocusNode focusNode;
   final String statusText;
   final bool enabled;
+  final bool predicting;
 
   @override
   Widget build(BuildContext context) {
+    const editorStyle = TextStyle(
+      color: AppTheme.text,
+      fontFamily: 'Consolas',
+      fontSize: 14,
+      height: 1.75,
+    );
     return _PaneFrame(
       header: Row(
         children: [
@@ -435,32 +760,79 @@ class _EditorPane extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          Text(statusText, style: Theme.of(context).textTheme.bodyMedium),
+          Flexible(
+            child: Text(
+              statusText,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ),
         ],
       ),
-      child: TextField(
-        controller: controller,
-        enabled: enabled,
-        expands: true,
-        maxLines: null,
-        minLines: null,
-        keyboardType: TextInputType.multiline,
-        decoration: const InputDecoration(
-          hintText: '# 开始编辑 Markdown...',
-          filled: true,
-          fillColor: Colors.white,
-          hoverColor: Colors.white,
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          disabledBorder: InputBorder.none,
-          contentPadding: EdgeInsets.fromLTRB(26, 24, 26, 24),
-        ),
-        style: const TextStyle(
-          color: AppTheme.text,
-          fontFamily: 'Consolas',
-          fontSize: 14,
-          height: 1.75,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              enabled: enabled,
+              expands: true,
+              maxLines: null,
+              minLines: null,
+              keyboardType: TextInputType.multiline,
+              decoration: const InputDecoration(
+                hintText: '# 开始编辑 Markdown...',
+                filled: true,
+                fillColor: Colors.white,
+                hoverColor: Colors.white,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                contentPadding: EdgeInsets.fromLTRB(26, 24, 26, 24),
+              ),
+              style: editorStyle,
+            ),
+          ),
+          if (predicting)
+            const Positioned(
+              right: 22,
+              bottom: 18,
+              child: _FimPredictingChip(),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FimPredictingChip extends StatelessWidget {
+  const _FimPredictingChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC).withValues(alpha: 0.92),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.auto_awesome_rounded,
+              size: 14,
+              color: Color(0xFF94A3B8),
+            ),
+            SizedBox(width: 7),
+            Text(
+              '补全预测中',
+              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+            ),
+          ],
         ),
       ),
     );

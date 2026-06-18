@@ -72,6 +72,16 @@ pub struct MemoryChatRequest {
 }
 
 #[derive(Clone, Debug)]
+pub struct FimCompleteRequest {
+    pub app_data_dir: String,
+    pub provider: AiProvider,
+    pub model: AiModel,
+    pub prompt: String,
+    pub suffix: String,
+    pub api_log_enabled: bool,
+}
+
+#[derive(Clone, Debug)]
 pub struct AiTextResult {
     pub ok: bool,
     pub content: String,
@@ -305,6 +315,48 @@ pub async fn memory_chat(request: MemoryChatRequest) -> AiTextResult {
         api_log_enabled: request.api_log_enabled,
     })
     .await
+}
+
+pub async fn fim_complete(request: FimCompleteRequest) -> AiTextResult {
+    let chat_request = AiChatRequest {
+        app_data_dir: request.app_data_dir.clone(),
+        provider: request.provider.clone(),
+        model: request.model.clone(),
+        system_prompt: String::new(),
+        user_prompt: request.prompt.clone(),
+        purpose: "fim_edit_completion".to_string(),
+        api_log_enabled: request.api_log_enabled,
+    };
+
+    if request.provider.api_key.trim().is_empty() {
+        return AiTextResult::error(
+            &chat_request,
+            "missing_api_key",
+            "供应商 API Key 为空，无法执行编辑补全。",
+            0,
+            0,
+            0,
+        );
+    }
+
+    if request.provider.protocol != "openaiCompatible" {
+        return AiTextResult::error(
+            &chat_request,
+            "unsupported_fim_protocol",
+            "编辑补全仅支持 OpenAI-compatible completions 协议。",
+            0,
+            0,
+            0,
+        );
+    }
+
+    let result = match ai_openai::fim_complete(&request).await {
+        Ok(result) => result,
+        Err(error) => AiTextResult::error(&chat_request, "request_failed", &error, 0, 0, 0),
+    };
+
+    let _ = stats::record_model_call(&request.app_data_dir, &chat_request, &result);
+    result
 }
 
 pub fn estimate_tokens(text: &str) -> i32 {

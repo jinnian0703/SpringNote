@@ -46,6 +46,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   DailyMergeRequest dco_decode_box_autoadd_daily_merge_request(dynamic raw);
 
   @protected
+  FimCompleteRequest dco_decode_box_autoadd_fim_complete_request(dynamic raw);
+
+  @protected
   MemoryChatRequest dco_decode_box_autoadd_memory_chat_request(dynamic raw);
 
   @protected
@@ -58,6 +61,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DailyMergeRequest dco_decode_daily_merge_request(dynamic raw);
+
+  @protected
+  FimCompleteRequest dco_decode_fim_complete_request(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
@@ -122,6 +128,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  FimCompleteRequest sse_decode_box_autoadd_fim_complete_request(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   MemoryChatRequest sse_decode_box_autoadd_memory_chat_request(
     SseDeserializer deserializer,
   );
@@ -138,6 +149,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   DailyMergeRequest sse_decode_daily_merge_request(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  FimCompleteRequest sse_decode_fim_complete_request(
     SseDeserializer deserializer,
   );
 
@@ -216,6 +232,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_fim_complete_request(
+    FimCompleteRequest self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_memory_chat_request(
     MemoryChatRequest self,
     SseSerializer serializer,
@@ -236,6 +258,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_daily_merge_request(
     DailyMergeRequest self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_fim_complete_request(
+    FimCompleteRequest self,
     SseSerializer serializer,
   );
 

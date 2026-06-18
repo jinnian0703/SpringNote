@@ -1,6 +1,7 @@
 use crate::ai::{
-    self, AiModel, AiProvider, AiTextResult, DailyMergeRequest, MemoryChatRequest, ModelListResult,
-    ProviderTestResult, ReportRequest, StructuredNoteRequest, StructuredNoteResult,
+    self, AiModel, AiProvider, AiTextResult, DailyMergeRequest, FimCompleteRequest,
+    MemoryChatRequest, ModelListResult, ProviderTestResult, ReportRequest, StructuredNoteRequest,
+    StructuredNoteResult,
 };
 
 #[flutter_rust_bridge::frb(init)]
@@ -26,6 +27,10 @@ pub async fn generate_monthly_report(request: ReportRequest) -> AiTextResult {
 
 pub async fn memory_chat(request: MemoryChatRequest) -> AiTextResult {
     ai::memory_chat(request).await
+}
+
+pub async fn fim_complete(request: FimCompleteRequest) -> AiTextResult {
+    ai::fim_complete(request).await
 }
 
 pub async fn test_provider_connection(

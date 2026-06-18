@@ -5,7 +5,6 @@ class ModelConfig {
     this.modelTypes = const ['chat'],
     this.inputModes = const ['text'],
     this.capabilities = const [],
-    this.fimMode = 'none',
   });
 
   final String modelId;
@@ -13,19 +12,18 @@ class ModelConfig {
   final List<String> modelTypes;
   final List<String> inputModes;
   final List<String> capabilities;
-  final String fimMode;
+
+  String get fimMode =>
+      modelTypes.contains('completion') ? 'completions' : 'none';
 
   factory ModelConfig.fromJson(Map<String, Object?> json) {
     final modelId = json['modelId']?.toString() ?? '';
     return ModelConfig(
       modelId: modelId,
       displayName: json['displayName']?.toString() ?? modelId,
-      modelTypes: _readStringList(json['modelTypes'], const ['chat']),
+      modelTypes: _readModelTypes(json),
       inputModes: _readStringList(json['inputModes'], const ['text']),
       capabilities: _readStringList(json['capabilities'], const []),
-      fimMode: json['fimMode']?.toString() == 'completions'
-          ? 'completions'
-          : 'none',
     );
   }
 
@@ -36,7 +34,6 @@ class ModelConfig {
       'modelTypes': modelTypes,
       'inputModes': inputModes,
       'capabilities': capabilities,
-      'fimMode': fimMode,
     };
   }
 
@@ -46,7 +43,6 @@ class ModelConfig {
     List<String>? modelTypes,
     List<String>? inputModes,
     List<String>? capabilities,
-    String? fimMode,
   }) {
     return ModelConfig(
       modelId: modelId ?? this.modelId,
@@ -54,7 +50,6 @@ class ModelConfig {
       modelTypes: modelTypes ?? this.modelTypes,
       inputModes: inputModes ?? this.inputModes,
       capabilities: capabilities ?? this.capabilities,
-      fimMode: fimMode ?? this.fimMode,
     );
   }
 
@@ -63,5 +58,14 @@ class ModelConfig {
       return fallback;
     }
     return value.map((item) => item.toString()).toList();
+  }
+
+  static List<String> _readModelTypes(Map<String, Object?> json) {
+    final modelTypes = _readStringList(json['modelTypes'], const ['chat']);
+    if (json['fimMode']?.toString() == 'completions' &&
+        !modelTypes.contains('completion')) {
+      return [...modelTypes, 'completion'];
+    }
+    return modelTypes;
   }
 }
