@@ -1,3 +1,5 @@
+import 'provider_config.dart';
+
 class AppConfig {
   const AppConfig({
     required this.dailyWorkHours,
@@ -21,7 +23,7 @@ class AppConfig {
   final bool autoStart;
   final bool showUpdates;
   final bool showDesktopWidget;
-  final List<Map<String, Object?>> providers;
+  final List<ProviderConfig> providers;
   final Map<String, String?> defaultModels;
   final Map<String, String?> hotkeys;
 
@@ -55,7 +57,7 @@ class AppConfig {
       autoStart: json['autoStart'] as bool? ?? false,
       showUpdates: json['showUpdates'] as bool? ?? true,
       showDesktopWidget: json['showDesktopWidget'] as bool? ?? true,
-      providers: _readMapList(json['providers']),
+      providers: _readProviders(json['providers']),
       defaultModels: _readStringMap(
         json['defaultModels'],
         AppConfig.defaults().defaultModels,
@@ -74,10 +76,38 @@ class AppConfig {
       'autoStart': autoStart,
       'showUpdates': showUpdates,
       'showDesktopWidget': showDesktopWidget,
-      'providers': providers,
+      'providers': providers.map((provider) => provider.toJson()).toList(),
       'defaultModels': defaultModels,
       'hotkeys': hotkeys,
     };
+  }
+
+  AppConfig copyWith({
+    double? dailyWorkHours,
+    double? dailySalary,
+    String? industry,
+    String? appFont,
+    double? fontScale,
+    bool? autoStart,
+    bool? showUpdates,
+    bool? showDesktopWidget,
+    List<ProviderConfig>? providers,
+    Map<String, String?>? defaultModels,
+    Map<String, String?>? hotkeys,
+  }) {
+    return AppConfig(
+      dailyWorkHours: dailyWorkHours ?? this.dailyWorkHours,
+      dailySalary: dailySalary ?? this.dailySalary,
+      industry: industry ?? this.industry,
+      appFont: appFont ?? this.appFont,
+      fontScale: fontScale ?? this.fontScale,
+      autoStart: autoStart ?? this.autoStart,
+      showUpdates: showUpdates ?? this.showUpdates,
+      showDesktopWidget: showDesktopWidget ?? this.showDesktopWidget,
+      providers: providers ?? this.providers,
+      defaultModels: defaultModels ?? this.defaultModels,
+      hotkeys: hotkeys ?? this.hotkeys,
+    );
   }
 
   static double _readDouble(Object? value, double fallback) {
@@ -87,7 +117,7 @@ class AppConfig {
     return fallback;
   }
 
-  static List<Map<String, Object?>> _readMapList(Object? value) {
+  static List<ProviderConfig> _readProviders(Object? value) {
     if (value is! List) {
       return [];
     }
@@ -97,6 +127,7 @@ class AppConfig {
         .map(
           (entry) => entry.map((key, value) => MapEntry(key.toString(), value)),
         )
+        .map(ProviderConfig.fromJson)
         .toList();
   }
 
