@@ -9,8 +9,8 @@ class AppTheme {
   static const Color surfaceMuted = Color(0xFFF1F5F9);
   static const Color border = Color(0xFFE5E7EB);
   static const Color text = Color(0xFF0F172A);
-  static const Color textMuted = Color(0xFF64748B);
-  static const Color textSubtle = Color(0xFF94A3B8);
+  static const Color textMuted = Color(0xFF475569);
+  static const Color textSubtle = Color(0xFF64748B);
 
   static ThemeData light() {
     final colorScheme = ColorScheme.fromSeed(
