@@ -1394,7 +1394,7 @@ class _ReasoningBlockState extends State<_ReasoningBlock> {
               ),
             ),
           ),
-          if (_expanded) _buildReasoningBody(context),
+          _buildReasoningBody(context),
         ],
       ),
     );
@@ -1405,31 +1405,37 @@ class _ReasoningBlockState extends State<_ReasoningBlock> {
       context,
     ).textTheme.bodySmall?.copyWith(color: AppTheme.textSubtle, height: 1.65);
     final text = Text(widget.reasoning.trim(), style: style);
-    final content = Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-      child: SizedBox(width: double.infinity, child: text),
-    );
-
-    if (widget.collapsed) {
-      return content;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
-      child: SizedBox(
-        width: double.infinity,
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 120),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 118),
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              physics: const ClampingScrollPhysics(),
-              child: text,
+    final body = widget.collapsed
+        ? Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+            child: SizedBox(width: double.infinity, child: text),
+          )
+        : Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+            child: SizedBox(
+              width: double.infinity,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 118),
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  physics: const ClampingScrollPhysics(),
+                  child: text,
+                ),
+              ),
             ),
-          ),
+          );
+
+    return ClipRect(
+      child: AnimatedAlign(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeInOutCubic,
+        alignment: Alignment.topCenter,
+        heightFactor: _expanded ? 1 : 0,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 140),
+          curve: Curves.easeOutCubic,
+          opacity: _expanded ? 1 : 0,
+          child: IgnorePointer(ignoring: !_expanded, child: body),
         ),
       ),
     );
