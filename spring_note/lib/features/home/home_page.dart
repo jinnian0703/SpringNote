@@ -1205,48 +1205,58 @@ class _SmartGenerateButton extends StatelessWidget {
           key: keyValue,
           behavior: HitTestBehavior.opaque,
           onTap: canSubmit ? onSubmit : null,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6.5),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
-              borderRadius: BorderRadius.circular(9999),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x0D000000),
-                  offset: Offset(0, 1),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  isSubmitting ? '整理中' : '智能生成',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
-                    height: 1.25,
+          child: SizedBox(
+            width: 98,
+            height: 24,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x0D000000),
+                    offset: Offset(0, 1),
+                    blurRadius: 2,
                   ),
-                ),
-                const SizedBox(width: 5),
-                if (isSubmitting)
-                  const SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Color(0xFF34D399),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      isSubmitting ? '整理中' : '智能生成',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                        height: 1.25,
                       ),
                     ),
-                  )
-                else
-                  const _LucideSparklesIcon(size: 13, color: Color(0xFF34D399)),
-              ],
+                    const SizedBox(width: 5),
+                    if (isSubmitting)
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF34D399),
+                          ),
+                        ),
+                      )
+                    else
+                      const _LucideSparklesIcon(
+                        size: 13,
+                        color: Color(0xFF34D399),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
