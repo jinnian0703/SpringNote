@@ -249,8 +249,12 @@ class _SidebarButtonState extends State<_SidebarButton> {
 
   @override
   Widget build(BuildContext context) {
+    final background = widget.selected
+        ? const Color(0xCCF1F5F9)
+        : _hovering
+        ? const Color(0x80F1F5F9)
+        : Colors.transparent;
     final iconColor = widget.selected ? AppTheme.text : const Color(0xFF94A3B8);
-    final hoverOpacity = !widget.selected && _hovering ? 1.0 : 0.0;
 
     return Tooltip(
       message: widget.tooltip,
@@ -264,31 +268,18 @@ class _SidebarButtonState extends State<_SidebarButton> {
           splashFactory: NoSplash.splashFactory,
           overlayColor: WidgetStateProperty.all(Colors.transparent),
           onTap: widget.onPressed,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: widget.selected
-                  ? const Color(0xCCF1F5F9)
-                  : Colors.transparent,
+              color: background,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Positioned.fill(
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 120),
-                    curve: Curves.easeOut,
-                    opacity: hoverOpacity,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color(0x80F1F5F9),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
                 _SidebarLucideIcon(
                   type: widget.icon,
                   size: 16,

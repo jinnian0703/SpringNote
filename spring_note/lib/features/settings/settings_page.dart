@@ -255,8 +255,12 @@ class _SettingsNavItemState extends State<_SettingsNavItem> {
 
   @override
   Widget build(BuildContext context) {
+    final background = widget.selected
+        ? AppTheme.surfaceMuted
+        : _hovering
+        ? const Color(0x99F1F5F9)
+        : Colors.transparent;
     final contentColor = widget.selected ? AppTheme.text : AppTheme.textMuted;
-    final hoverOpacity = !widget.selected && _hovering ? 1.0 : 0.0;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
@@ -269,49 +273,30 @@ class _SettingsNavItemState extends State<_SettingsNavItem> {
           splashFactory: NoSplash.splashFactory,
           overlayColor: WidgetStateProperty.all(Colors.transparent),
           onTap: widget.onTap,
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
             height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: widget.selected
-                  ? AppTheme.surfaceMuted
-                  : Colors.transparent,
+              color: background,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Stack(
+            child: Row(
               children: [
-                Positioned.fill(
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 120),
-                    curve: Curves.easeOut,
-                    opacity: hoverOpacity,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color(0x99F1F5F9),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
+                _SettingsNavLucideIcon(
+                  type: widget.section.icon,
+                  size: 15,
+                  color: contentColor,
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
-                    children: [
-                      _SettingsNavLucideIcon(
-                        type: widget.section.icon,
-                        size: 15,
-                        color: contentColor,
-                      ),
-                      const SizedBox(width: 9),
-                      Text(
-                        widget.section.label,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: contentColor,
-                          fontWeight: widget.selected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
+                const SizedBox(width: 9),
+                Text(
+                  widget.section.label,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: contentColor,
+                    fontWeight: widget.selected
+                        ? FontWeight.w600
+                        : FontWeight.w400,
                   ),
                 ),
               ],
@@ -673,7 +658,11 @@ class _ProviderListItemState extends State<_ProviderListItem> {
 
   @override
   Widget build(BuildContext context) {
-    final hoverOpacity = !widget.selected && _hovering ? 1.0 : 0.0;
+    final background = widget.selected
+        ? AppTheme.surfaceMuted
+        : _hovering
+        ? const Color(0x99F1F5F9)
+        : Colors.transparent;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -684,49 +673,32 @@ class _ProviderListItemState extends State<_ProviderListItem> {
         splashFactory: NoSplash.splashFactory,
         overlayColor: WidgetStateProperty.all(Colors.transparent),
         onTap: widget.onTap,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
           height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: widget.selected ? AppTheme.surfaceMuted : Colors.transparent,
+            color: background,
             borderRadius: BorderRadius.circular(14),
           ),
-          child: Stack(
+          child: Row(
             children: [
-              Positioned.fill(
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 120),
-                  curve: Curves.easeOut,
-                  opacity: hoverOpacity,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: const Color(0x99F1F5F9),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: const Color(0xFFEFF6FF),
+                child: Text(
+                  widget.provider.name.characters.first.toUpperCase(),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 14,
-                      backgroundColor: const Color(0xFFEFF6FF),
-                      child: Text(
-                        widget.provider.name.characters.first.toUpperCase(),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        widget.provider.name,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    _StatusPill(enabled: widget.provider.enabled),
-                  ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  widget.provider.name,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              _StatusPill(enabled: widget.provider.enabled),
             ],
           ),
         ),
