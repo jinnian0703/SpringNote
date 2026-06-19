@@ -235,7 +235,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-class _SettingsNavItem extends StatelessWidget {
+class _SettingsNavItem extends StatefulWidget {
   const _SettingsNavItem({
     required this.section,
     required this.selected,
@@ -247,45 +247,122 @@ class _SettingsNavItem extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_SettingsNavItem> createState() => _SettingsNavItemState();
+}
+
+class _SettingsNavItemState extends State<_SettingsNavItem> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    final contentColor = selected ? AppTheme.text : AppTheme.textMuted;
+    final active = widget.selected || _hovered;
+    final contentColor = active ? AppTheme.text : AppTheme.textMuted;
+    final backgroundColor = widget.selected
+        ? const Color(0xCCF1F5F9)
+        : _hovered
+        ? const Color(0x99F1F5F9)
+        : Colors.transparent;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Material(
-        color: Colors.transparent,
-        child: Ink(
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xCCF1F5F9) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            hoverColor: const Color(0x99F1F5F9),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            child: Container(
-              height: 36,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: [
-                  _SettingsNavLucideIcon(
-                    type: section.icon,
-                    size: 15,
-                    color: contentColor,
-                  ),
-                  const SizedBox(width: 9),
-                  Text(
-                    section.label,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: contentColor,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: Row(
+              children: [
+                _SettingsNavLucideIcon(
+                  type: widget.section.icon,
+                  size: 15,
+                  color: contentColor,
+                ),
+                const SizedBox(width: 9),
+                Text(
+                  widget.section.label,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: contentColor,
+                    fontWeight: widget.selected
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProviderListItem extends StatefulWidget {
+  const _ProviderListItem({
+    required this.provider,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final ProviderConfig provider;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_ProviderListItem> createState() => _ProviderListItemState();
+}
+
+class _ProviderListItemState extends State<_ProviderListItem> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = widget.selected
+        ? const Color(0xE6F1F5F9)
+        : _hovered
+        ? const Color(0xFFF8FAFC)
+        : Colors.transparent;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
+          height: 46,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: const Color(0xFFEFF6FF),
+                child: Text(
+                  widget.provider.name.characters.first.toUpperCase(),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  widget.provider.name,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _StatusPill(enabled: widget.provider.enabled),
+            ],
           ),
         ),
       ),
@@ -619,59 +696,6 @@ class _ProvidersPanel extends StatelessWidget {
                 ),
         ),
       ],
-    );
-  }
-}
-
-class _ProviderListItem extends StatelessWidget {
-  const _ProviderListItem({
-    required this.provider,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final ProviderConfig provider;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Ink(
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xE6F1F5F9) : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          hoverColor: const Color(0xFFF8FAFC),
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          child: Container(
-            height: 46,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: const Color(0xFFEFF6FF),
-                  child: Text(provider.name.characters.first.toUpperCase()),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    provider.name,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                _StatusPill(enabled: provider.enabled),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

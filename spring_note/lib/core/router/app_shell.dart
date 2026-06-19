@@ -227,7 +227,7 @@ class GlobalSidebar extends StatelessWidget {
   }
 }
 
-class _SidebarButton extends StatelessWidget {
+class _SidebarButton extends StatefulWidget {
   const _SidebarButton({
     required this.icon,
     required this.tooltip,
@@ -241,38 +241,53 @@ class _SidebarButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
+  State<_SidebarButton> createState() => _SidebarButtonState();
+}
+
+class _SidebarButtonState extends State<_SidebarButton> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    final iconColor = selected ? AppTheme.text : const Color(0xFF94A3B8);
+    final backgroundColor = widget.selected
+        ? const Color(0xCCF1F5F9)
+        : _hovered
+        ? const Color(0xFFF8FAFC)
+        : Colors.transparent;
+    final iconColor = widget.selected || _hovered
+        ? AppTheme.text
+        : const Color(0xFF94A3B8);
 
     return Tooltip(
-      message: tooltip,
+      message: widget.tooltip,
       waitDuration: const Duration(milliseconds: 450),
-      child: Material(
-        color: Colors.transparent,
-        child: Ink(
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xCCF1F5F9) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: InkWell(
-            onTap: onPressed,
-            borderRadius: BorderRadius.circular(12),
-            hoverColor: const Color(0xFFF8FAFC),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  _SidebarLucideIcon(type: icon, size: 16, color: iconColor),
-                  Opacity(
-                    opacity: 0,
-                    child: Icon(_legacyMaterialIcon(icon), size: 20),
-                  ),
-                ],
-              ),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onPressed,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                _SidebarLucideIcon(
+                  type: widget.icon,
+                  size: 16,
+                  color: iconColor,
+                ),
+                Opacity(
+                  opacity: 0,
+                  child: Icon(_legacyMaterialIcon(widget.icon), size: 20),
+                ),
+              ],
             ),
           ),
         ),
