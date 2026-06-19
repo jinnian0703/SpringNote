@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/models/app_config.dart';
 import 'core/models/local_data_state.dart';
 import 'core/router/app_shell.dart';
 import 'core/services/local_data_service.dart';
@@ -21,20 +22,40 @@ class SpringNoteApp extends StatefulWidget {
 }
 
 class _SpringNoteAppState extends State<SpringNoteApp> {
+  AppConfig _config = AppConfig.defaults();
   late final Future<LocalDataState> _initFuture = _initialize();
 
   Future<LocalDataState> _initialize() async {
     final state = await widget.localDataService.initialize();
     await widget.statsService.recordAppStartup(appDataDir: state.dataDirectory);
+    if (mounted) {
+      setState(() => _config = state.config);
+    } else {
+      _config = state.config;
+    }
     return state;
+  }
+
+  void _handleConfigChanged(AppConfig config) {
+    if (mounted) {
+      setState(() => _config = config);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final fontScale = AppTheme.fontScaleFactor(_config.fontScale);
     return MaterialApp(
       title: 'SpringNote',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
+      theme: AppTheme.light(appFont: _config.appFont),
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        return MediaQuery(
+          data: mediaQuery.copyWith(textScaler: TextScaler.linear(fontScale)),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       home: FutureBuilder<LocalDataState>(
         future: _initFuture,
         builder: (context, snapshot) {
@@ -46,7 +67,10 @@ class _SpringNoteAppState extends State<SpringNoteApp> {
             return const AppStartupLoading();
           }
 
-          return AppShell(localDataState: snapshot.data!);
+          return AppShell(
+            localDataState: snapshot.data!,
+            onConfigChanged: _handleConfigChanged,
+          );
         },
       ),
     );

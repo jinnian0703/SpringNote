@@ -10,6 +10,16 @@ import 'package:spring_note/core/theme/app_theme.dart';
 import 'package:spring_note/features/settings/settings_page.dart';
 
 void main() {
+  test('app theme applies configured font and clamps font scale', () {
+    final theme = AppTheme.light(appFont: 'Consolas');
+
+    expect(theme.textTheme.bodyMedium?.fontFamily, 'Consolas');
+    expect(theme.textTheme.titleMedium?.fontFamily, 'Consolas');
+    expect(AppTheme.fontScaleFactor(120), 1.2);
+    expect(AppTheme.fontScaleFactor(10), 0.8);
+    expect(AppTheme.fontScaleFactor(200), 1.4);
+  });
+
   testWidgets('settings page switches sections and persists preferences', (
     WidgetTester tester,
   ) async {
@@ -45,6 +55,37 @@ void main() {
     await tester.pump();
     expect(service.savedConfig.apiLogEnabled, isTrue);
     expect(latestConfig?.apiLogEnabled, isTrue);
+  });
+
+  testWidgets('settings page persists font size input', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    final service = _MemoryLocalDataService(AppConfig.defaults());
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: SettingsPage(
+          localDataState: _state(AppConfig.defaults()),
+          localDataService: service,
+        ),
+      ),
+    );
+
+    expect(find.text('系统默认'), findsOneWidget);
+    final fontScaleField = find.byWidgetPredicate(
+      (widget) => widget is TextField && widget.controller?.text == '100',
+    );
+    expect(fontScaleField, findsOneWidget);
+
+    await tester.enterText(fontScaleField, '120');
+    await tester.pump();
+
+    expect(service.savedConfig.fontScale, 120);
   });
 
   testWidgets('settings page adds provider edits model and selects default', (

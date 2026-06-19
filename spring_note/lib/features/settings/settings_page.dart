@@ -8,6 +8,7 @@ import '../../core/models/provider_config.dart';
 import '../../core/services/ai_client_service.dart';
 import '../../core/services/local_data_service.dart';
 import '../../core/services/stats_service.dart';
+import '../../core/services/system_font_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../src/rust/stats.dart' as rust_stats;
 
@@ -632,26 +633,17 @@ class _PreferencesPanel extends StatelessWidget {
         _SettingsCard(
           title: '字体与显示',
           children: [
-            _TextSettingRow(
+            _FontSettingRow(
               label: '应用字体',
-              value: config.appFont == 'system' ? '系统默认' : config.appFont,
-              onChanged: (value) => onChanged(
-                config.copyWith(
-                  appFont: value.trim().isEmpty || value == '系统默认'
-                      ? 'system'
-                      : value,
-                ),
-              ),
-              trailing: IconButton(
-                tooltip: '重置字体',
-                onPressed: () => onChanged(config.copyWith(appFont: 'system')),
-                icon: const Icon(Icons.restart_alt_rounded, size: 17),
-              ),
+              value: config.appFont,
+              onChanged: (value) => onChanged(config.copyWith(appFont: value)),
             ),
             _NumberSettingRow(
               label: '字体大小',
               value: config.fontScale,
               suffix: '%',
+              minValue: 80,
+              maxValue: 140,
               onChanged: (value) =>
                   onChanged(config.copyWith(fontScale: value)),
             ),
@@ -2236,18 +2228,333 @@ class _TextSettingRow extends StatelessWidget {
   }
 }
 
+class _FontSettingRow extends StatefulWidget {
+  const _FontSettingRow({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_FontSettingRow> createState() => _FontSettingRowState();
+}
+
+class _FontSettingRowState extends State<_FontSettingRow> {
+  bool _loading = false;
+
+  Future<void> _openFontPicker() async {
+    if (_loading) {
+      return;
+    }
+
+    setState(() => _loading = true);
+    final fonts = await const SystemFontService().loadFonts();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _loading = false);
+
+    final selectedFont = await showDialog<String>(
+      context: context,
+      builder: (context) =>
+          _FontPickerDialog(fonts: fonts, selectedFont: widget.value),
+    );
+    if (selectedFont == null || selectedFont == widget.value) {
+      return;
+    }
+    widget.onChanged(selectedFont);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = widget.value == 'system' ? '系统默认' : widget.value;
+
+    return _SettingRowShell(
+      label: widget.label,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _FontPickerButton(
+            label: label,
+            loading: _loading,
+            onTap: _openFontPicker,
+          ),
+          IconButton(
+            tooltip: '重置字体',
+            onPressed: widget.value == 'system'
+                ? null
+                : () => widget.onChanged('system'),
+            icon: const Icon(Icons.restart_alt_rounded, size: 17),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FontPickerButton extends StatefulWidget {
+  const _FontPickerButton({
+    required this.label,
+    required this.loading,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool loading;
+  final VoidCallback onTap;
+
+  @override
+  State<_FontPickerButton> createState() => _FontPickerButtonState();
+}
+
+class _FontPickerButtonState extends State<_FontPickerButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = _hovered || widget.loading;
+    return MouseRegion(
+      cursor: widget.loading
+          ? SystemMouseCursors.basic
+          : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.loading ? null : widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOutCubic,
+          width: 220,
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 13),
+          decoration: BoxDecoration(
+            color: active ? const Color(0xFFF1F5F9) : const Color(0xFFF8FAFC),
+            border: Border.all(
+              color: active ? const Color(0xFFCBD5E1) : const Color(0xFFE5E7EB),
+            ),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  widget.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.text,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (widget.loading)
+                const SizedBox(
+                  width: 13,
+                  height: 13,
+                  child: CircularProgressIndicator(strokeWidth: 1.7),
+                )
+              else
+                const Icon(
+                  Icons.expand_more_rounded,
+                  size: 18,
+                  color: AppTheme.textSubtle,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FontPickerDialog extends StatefulWidget {
+  const _FontPickerDialog({required this.fonts, required this.selectedFont});
+
+  final List<String> fonts;
+  final String selectedFont;
+
+  @override
+  State<_FontPickerDialog> createState() => _FontPickerDialogState();
+}
+
+class _FontPickerDialogState extends State<_FontPickerDialog> {
+  late final TextEditingController _controller = TextEditingController();
+  String _query = '';
+
+  List<String> get _fonts {
+    final normalizedQuery = _query.trim().toLowerCase();
+    final values = ['system', ...widget.fonts];
+    if (normalizedQuery.isEmpty) {
+      return values;
+    }
+    return values
+        .where(
+          (font) => _fontLabel(font).toLowerCase().contains(normalizedQuery),
+        )
+        .toList();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fonts = _fonts;
+    return Dialog(
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      child: SizedBox(
+        width: 460,
+        height: 560,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 20, 14, 14),
+              child: Row(
+                children: [
+                  Text('选择字体', style: Theme.of(context).textTheme.titleMedium),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: '关闭',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 0, 22, 14),
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                onChanged: (value) => setState(() => _query = value),
+                decoration: const InputDecoration(
+                  isDense: true,
+                  prefixIcon: Icon(Icons.search_rounded, size: 17),
+                  hintText: '搜索系统字体',
+                ),
+              ),
+            ),
+            Expanded(
+              child: fonts.isEmpty
+                  ? Center(
+                      child: Text(
+                        '没有匹配的字体',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+                      itemCount: fonts.length,
+                      itemBuilder: (context, index) {
+                        final font = fonts[index];
+                        return _FontOptionTile(
+                          font: font,
+                          selected: font == widget.selectedFont,
+                          onTap: () => Navigator.of(context).pop(font),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FontOptionTile extends StatefulWidget {
+  const _FontOptionTile({
+    required this.font,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String font;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_FontOptionTile> createState() => _FontOptionTileState();
+}
+
+class _FontOptionTileState extends State<_FontOptionTile> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = widget.selected || _hovered;
+    final fontFamily = widget.font == 'system' ? null : widget.font;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOutCubic,
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          margin: const EdgeInsets.only(bottom: 4),
+          decoration: BoxDecoration(
+            color: active ? const Color(0xFFF1F5F9) : Colors.transparent,
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _fontLabel(widget.font),
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: active ? AppTheme.text : AppTheme.textMuted,
+                    fontFamily: fontFamily,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+              if (widget.selected)
+                const Icon(Icons.check_rounded, size: 17, color: AppTheme.text),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _fontLabel(String font) {
+  return font == 'system' ? '系统默认' : font;
+}
+
 class _NumberSettingRow extends StatelessWidget {
   const _NumberSettingRow({
     required this.label,
     required this.value,
     required this.suffix,
     required this.onChanged,
+    this.minValue,
+    this.maxValue,
   });
 
   final String label;
   final double value;
   final String suffix;
   final ValueChanged<double> onChanged;
+  final double? minValue;
+  final double? maxValue;
 
   @override
   Widget build(BuildContext context) {
@@ -2262,7 +2569,13 @@ class _NumberSettingRow extends StatelessWidget {
               value: _formatNumber(value),
               textAlign: TextAlign.right,
               keyboardType: TextInputType.number,
-              onChanged: (text) => onChanged(double.tryParse(text) ?? value),
+              onChanged: (text) {
+                final parsed = double.tryParse(text);
+                if (parsed == null) {
+                  return;
+                }
+                onChanged(_clamp(parsed));
+              },
             ),
           ),
           const SizedBox(width: 8),
@@ -2276,6 +2589,18 @@ class _NumberSettingRow extends StatelessWidget {
     return value == value.roundToDouble()
         ? value.toStringAsFixed(0)
         : value.toString();
+  }
+
+  double _clamp(double value) {
+    final min = minValue;
+    final max = maxValue;
+    if (min != null && value < min) {
+      return min;
+    }
+    if (max != null && value > max) {
+      return max;
+    }
+    return value;
   }
 }
 

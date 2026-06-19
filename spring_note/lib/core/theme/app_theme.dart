@@ -12,7 +12,10 @@ class AppTheme {
   static const Color textMuted = Color(0xFF475569);
   static const Color textSubtle = Color(0xFF64748B);
 
-  static ThemeData light() {
+  static ThemeData light({String appFont = 'system'}) {
+    final fontFamily = appFont.trim().isEmpty || appFont == 'system'
+        ? 'Segoe UI Variable'
+        : appFont.trim();
     final colorScheme = ColorScheme.fromSeed(
       seedColor: text,
       brightness: Brightness.light,
@@ -31,7 +34,7 @@ class AppTheme {
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
       focusColor: Colors.transparent,
-      fontFamily: 'Segoe UI Variable',
+      fontFamily: fontFamily,
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
           color: text,
@@ -75,7 +78,7 @@ class AppTheme {
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
-      ),
+      ).apply(fontFamily: fontFamily),
       iconTheme: const IconThemeData(color: textMuted, size: 20),
       dividerTheme: const DividerThemeData(
         color: border,
@@ -104,5 +107,10 @@ class AppTheme {
         ),
       ),
     );
+  }
+
+  static double fontScaleFactor(double fontScale) {
+    final safeScale = fontScale.isFinite ? fontScale : 100;
+    return safeScale.clamp(80, 140).toDouble() / 100;
   }
 }

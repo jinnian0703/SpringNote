@@ -7,6 +7,7 @@ import '../../features/memory/memory_page.dart';
 import '../../features/notes/notes_page.dart';
 import '../../features/settings/settings_page.dart';
 import '../../features/widget/desktop_status_widget.dart';
+import '../models/app_config.dart';
 import '../models/local_data_state.dart';
 import '../services/desktop_widget_controller.dart';
 import '../services/desktop_widget_window_bridge.dart';
@@ -16,9 +17,14 @@ import '../theme/app_theme.dart';
 enum AppSection { home, notes, memory, settings }
 
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, required this.localDataState});
+  const AppShell({
+    super.key,
+    required this.localDataState,
+    this.onConfigChanged,
+  });
 
   final LocalDataState localDataState;
+  final ValueChanged<AppConfig>? onConfigChanged;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -151,6 +157,7 @@ class _AppShellState extends State<AppShell> {
                           _desktopWidgetController.attach(_localDataState);
                           _levelProgressController.attach(_localDataState);
                         });
+                        widget.onConfigChanged?.call(config);
                         _syncDesktopWidgetWindow();
                       },
                     ),
