@@ -7,6 +7,7 @@ import 'core/router/app_shell.dart';
 import 'core/services/local_data_service.dart';
 import 'core/services/stats_service.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/app_window_frame.dart';
 
 class SpringNoteApp extends StatefulWidget {
   const SpringNoteApp({
@@ -66,22 +67,24 @@ class _SpringNoteAppState extends State<SpringNoteApp> {
           child: child ?? const SizedBox.shrink(),
         );
       },
-      home: FutureBuilder<LocalDataState>(
-        future: _initFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return AppStartupError(error: snapshot.error.toString());
-          }
+      home: AppWindowFrame(
+        child: FutureBuilder<LocalDataState>(
+          future: _initFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return AppStartupError(error: snapshot.error.toString());
+            }
 
-          if (!snapshot.hasData) {
-            return const AppStartupLoading();
-          }
+            if (!snapshot.hasData) {
+              return const AppStartupLoading();
+            }
 
-          return AppShell(
-            localDataState: snapshot.data!,
-            onConfigChanged: _handleConfigChanged,
-          );
-        },
+            return AppShell(
+              localDataState: snapshot.data!,
+              onConfigChanged: _handleConfigChanged,
+            );
+          },
+        ),
       ),
     );
   }

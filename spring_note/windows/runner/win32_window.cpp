@@ -1,34 +1,10 @@
 #include "win32_window.h"
 
-#include <dwmapi.h>
 #include <flutter_windows.h>
 
 #include "resource.h"
 
 namespace {
-
-/// Window attribute that enables dark mode window decorations.
-///
-/// Redefined in case the developer's machine has a Windows SDK older than
-/// version 10.0.22000.0.
-/// See: https://docs.microsoft.com/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
-#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
-#define DWMWA_USE_IMMERSIVE_DARK_MODE 20
-#endif
-
-// Window frame color attributes. These are available on modern Windows builds;
-// older systems ignore the calls and keep the default title bar.
-#ifndef DWMWA_BORDER_COLOR
-#define DWMWA_BORDER_COLOR 34
-#endif
-
-#ifndef DWMWA_CAPTION_COLOR
-#define DWMWA_CAPTION_COLOR 35
-#endif
-
-#ifndef DWMWA_TEXT_COLOR
-#define DWMWA_TEXT_COLOR 36
-#endif
 
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
 
@@ -150,8 +126,6 @@ bool Win32Window::Create(const std::wstring& title,
     return false;
   }
 
-  UpdateTheme(window);
-
   return OnCreate();
 }
 
@@ -219,9 +193,6 @@ Win32Window::MessageHandler(HWND hwnd,
       }
       return 0;
 
-    case WM_DWMCOLORIZATIONCOLORCHANGED:
-      UpdateTheme(hwnd);
-      return 0;
   }
 
   return DefWindowProc(window_handle_, message, wparam, lparam);
@@ -278,19 +249,3 @@ void Win32Window::OnDestroy() {
   // No-op; provided for subclasses.
 }
 
-void Win32Window::UpdateTheme(HWND const window) {
-  BOOL enable_dark_mode = FALSE;
-  DwmSetWindowAttribute(window, DWMWA_USE_IMMERSIVE_DARK_MODE,
-                        &enable_dark_mode, sizeof(enable_dark_mode));
-
-  const COLORREF caption_color = RGB(252, 252, 252);
-  const COLORREF text_color = RGB(23, 23, 23);
-  const COLORREF border_color = RGB(229, 229, 229);
-
-  DwmSetWindowAttribute(window, DWMWA_CAPTION_COLOR, &caption_color,
-                        sizeof(caption_color));
-  DwmSetWindowAttribute(window, DWMWA_TEXT_COLOR, &text_color,
-                        sizeof(text_color));
-  DwmSetWindowAttribute(window, DWMWA_BORDER_COLOR, &border_color,
-                        sizeof(border_color));
-}
