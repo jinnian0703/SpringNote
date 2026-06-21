@@ -1,0 +1,230 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  flutter-checks:
+    name: Flutter Analyze & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spring_note
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Flutter analyze
+        run: flutter analyze
+
+      - name: Flutter test
+        run: flutter test
+
+      - name: Rust test
+        working-directory: spring_note/rust
+        run: cargo test
+
+  windows-build:
+    name: Windows Release Build
+    runs-on: windows-latest
+    needs: flutter-checks
+    defaults:
+      run:
+        working-directory: spring_note
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+  ai-review:
+    name: AI Pull Request Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+
+    env:
+      # 🔴 修正：全部统一样式，从 secrets 中读取
+      AI_REVIEW_API_KEY: ${{ secrets.AI_REVIEW_API_KEY }}
+      AI_REVIEW_MODEL: ${{ secrets.AI_REVIEW_MODEL }}
+      AI_REVIEW_BASE_URL: ${{ secrets.AI_REVIEW_BASE_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate PR diff
+        shell: bash
+        run: |
+          git diff \
+            --unified=80 \
+            --no-ext-diff \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            -- \
+            ':!**/*.lock' \
+            ':!spring_note/lib/src/rust/frb_generated.dart' \
+            ':!spring_note/lib/src/rust/frb_generated.io.dart' \
+            ':!spring_note/lib/src/rust/frb_generated.web.dart' \
+            ':!spring_note/rust/src/frb_generated.rs' \
+            > pr.diff
+
+      - name: Run AI review
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import pathlib
+          import urllib.error
+          import urllib.request
+
+          api_key = os.environ.get("AI_REVIEW_API_KEY", "").strip()
+          model = os.environ.get("AI_REVIEW_MODEL", "").strip() or "deepseek-chat"
+          base_url = os.environ.get("AI_REVIEW_BASE_URL", "").strip() or "https://api.deepseek.com/v1"
+
+          # 🔴 稳健性修正：自动补全接口后缀，防止你在 Secret 里只填了 /v1 导致 404
+          if not base_url.endswith("/chat/completions"):
+              base_url = base_url.rstrip("/") + "/chat/completions"
+
+          diff_path = pathlib.Path("pr.diff")
+          review_path = pathlib.Path("ai-review.md")
+          diff = diff_path.read_text(encoding="utf-8", errors="ignore")
+
+          if not diff.strip():
+              review_path.write_text("本次 PR 没有可审查的代码差异。", encoding="utf-8")
+              print("No diff to review.")
+              raise SystemExit(0)
+
+          if not api_key:
+              review_path.write_text(
+                  "AI 审查已跳过：仓库未配置 `AI_REVIEW_API_KEY` Secret。",
+                  encoding="utf-8",
+              )
+              print("AI_REVIEW_API_KEY is not configured; skipped AI review.")
+              raise SystemExit(0)
+
+          max_chars = 60000
+          if len(diff) > max_chars:
+              diff = diff[:max_chars] + "\n\n[Diff 已截断，仅审查前 60000 字符。]"
+
+          payload = {
+              "model": model,
+              "temperature": 0.2,
+              "messages": [
+                  {
+                      "role": "system",
+                      "content": (
+                          "你是一名严格、务实的高级代码审查工程师。"
+                          "请用中文审查 PR diff，优先指出真实 bug、回归风险、"
+                          "安全问题、性能问题、可维护性问题和缺失测试。"
+                          "不要泛泛表扬，不要重复 diff。"
+                          "输出格式：先给结论，然后按严重程度列出问题。"
+                          "每个问题包含：严重程度、位置/文件、原因、建议修复方式。"
+                          "如果没有明显问题，请明确说明，并列出剩余风险。"
+                      ),
+                  },
+                  {
+                      "role": "user",
+                      "content": f"请审查下面的 GitHub Pull Request diff：\n\n```diff\n{diff}\n```",
+                  },
+              ],
+          }
+
+          request = urllib.request.Request(
+              base_url,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={
+                  "Authorization": f"Bearer {api_key}",
+                  "Content-Type": "application/json",
+                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GitHubAction",
+              },
+              method="POST",
+          )
+
+          try:
+              with urllib.request.urlopen(request, timeout=90) as response:
+                  body = response.read().decode("utf-8", errors="replace")
+              data = json.loads(body)
+              content = data["choices"][0]["message"]["content"].strip()
+          except (urllib.error.URLError, urllib.error.HTTPError, KeyError, IndexError, json.JSONDecodeError) as exc:
+              content = f"AI 审查请求失败：`{exc}`"
+
+          review_path.write_text(content + "\n", encoding="utf-8")
+          print(content)
+          PY
+
+      - name: Publish AI review summary
+        shell: bash
+        run: |
+          {
+            echo "## AI 审查结果"
+            echo
+            cat ai-review.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment AI review on PR
+        if: env.AI_REVIEW_API_KEY != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = [
+              '## AI 审查结果',
+              '',
+              fs.readFileSync('ai-review.md', 'utf8')
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
