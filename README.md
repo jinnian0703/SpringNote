@@ -79,4 +79,8 @@
 > [!TIP]
 > 如果本项目对您的生活 / 工作产生了帮助，或者您关注本项目的未来发展，请给项目 Star，这是我们维护这个开源项目的动力 <3
 
+<p align="center">
+  <img src="https://count.getloli.com/@SpringNote?name=SpringNote&theme=miku&padding=7&offset=0&align=center&scale=0.3&pixelated=1&darkmode=auto" alt="visitor count" />
+</p>
+
 ![Star History](https://api.star-history.com/svg?repos=Radiant303/SpringNote&type=Date)
