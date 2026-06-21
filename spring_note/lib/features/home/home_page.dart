@@ -1903,13 +1903,14 @@ class _UpdateNoticeBannerState extends State<_UpdateNoticeBanner> {
           ),
           child: Row(
             children: [
-              Icon(
-                widget.result.status == UpdateCheckStatus.failed
-                    ? Icons.info_outline_rounded
-                    : Icons.system_update_alt_rounded,
-                size: 18,
-                color: foreground,
-              ),
+              if (widget.result.status == UpdateCheckStatus.failed)
+                Icon(
+                  Icons.info_outline_rounded,
+                  size: 18,
+                  color: foreground,
+                )
+              else
+                _UpdateDownloadIcon(size: 18, color: foreground),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -1947,6 +1948,61 @@ class _UpdateNoticeBannerState extends State<_UpdateNoticeBanner> {
         );
       },
     );
+  }
+}
+
+class _UpdateDownloadIcon extends StatelessWidget {
+  const _UpdateDownloadIcon({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size.square(size),
+      painter: _UpdateDownloadIconPainter(color: color),
+    );
+  }
+}
+
+class _UpdateDownloadIconPainter extends CustomPainter {
+  const _UpdateDownloadIconPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final sx = size.width / 24;
+    final sy = size.height / 24;
+    final strokeScale = sx < sy ? sx : sy;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2 * strokeScale
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    Offset p(double x, double y) => Offset(x * sx, y * sy);
+
+    canvas.drawLine(p(12, 3), p(12, 15), paint);
+    canvas.drawLine(p(7, 10), p(12, 15), paint);
+    canvas.drawLine(p(17, 10), p(12, 15), paint);
+    canvas.drawPath(
+      Path()
+        ..moveTo(5 * sx, 17 * sy)
+        ..lineTo(5 * sx, 19 * sy)
+        ..cubicTo(5 * sx, 20.1 * sy, 5.9 * sx, 21 * sy, 7 * sx, 21 * sy)
+        ..lineTo(17 * sx, 21 * sy)
+        ..cubicTo(18.1 * sx, 21 * sy, 19 * sx, 20.1 * sy, 19 * sx, 19 * sy)
+        ..lineTo(19 * sx, 17 * sy),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _UpdateDownloadIconPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
 
@@ -2113,8 +2169,7 @@ class _InstallerDownloadButtonState extends State<_InstallerDownloadButton> {
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.download_rounded,
+              const _UpdateDownloadIcon(
                 size: 18,
                 color: Color(0xFF4F4F4F),
               ),
