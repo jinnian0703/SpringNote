@@ -236,6 +236,71 @@ void main() {
     );
   });
 
+  testWidgets('settings page filters unsupported API path characters', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    const provider = ProviderConfig(
+      id: 'openai-test',
+      enabled: true,
+      name: 'OpenAI',
+      protocol: 'openaiCompatible',
+      apiKey: 'test-key',
+      baseUrl: 'https://api.openai.com/v1',
+      apiPath: '/chat/completions',
+      models: [],
+    );
+    final service = _MemoryLocalDataService(
+      AppConfig.defaults().copyWith(providers: const [provider]),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: SettingsPage(
+          localDataState: _state(service.savedConfig),
+          localDataService: service,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('供应商').first);
+    await tester.pump();
+
+    final apiPathField = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField && widget.controller?.text == '/chat/completions',
+    );
+    expect(apiPathField, findsOneWidget);
+
+    await tester.enterText(
+      apiPathField,
+      '/v1/chat/completions}} "<bad>\\\\path?mode=test&x=1',
+    );
+    await tester.pump();
+
+    final filteredApiPathField = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField &&
+          widget.controller?.text ==
+              '/v1/chat/completionsbadpath?mode=test&x=1',
+    );
+    expect(filteredApiPathField, findsOneWidget);
+    final textField = tester.widget<TextField>(filteredApiPathField);
+    expect(
+      textField.controller?.text,
+      '/v1/chat/completionsbadpath?mode=test&x=1',
+    );
+    expect(
+      service.savedConfig.providers.first.apiPath,
+      '/v1/chat/completionsbadpath?mode=test&x=1',
+    );
+  });
+
   testWidgets('default model picker stores provider-qualified model refs', (
     WidgetTester tester,
   ) async {

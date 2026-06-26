@@ -22,6 +22,10 @@ import '../../core/theme/app_theme.dart';
 import '../../src/rust/stats.dart' as rust_stats;
 import 'settings_stats_panel.dart';
 
+final List<TextInputFormatter> _apiPathInputFormatters = [
+  FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9/._~:%?&=+-]')),
+];
+
 enum _SettingsSection {
   preferences('偏好设置', _SettingsNavIconType.monitor),
   providers('供应商', _SettingsNavIconType.boxes),
@@ -1418,6 +1422,7 @@ class _ProviderDetailsState extends State<_ProviderDetails> {
             _LooseField(
               label: 'API 路径',
               value: provider.apiPath,
+              inputFormatters: _apiPathInputFormatters,
               onChanged: (value) {
                 widget.onProviderChanged(provider.copyWith(apiPath: value));
               },
@@ -4282,7 +4287,11 @@ class _AddProviderDialogState extends State<_AddProviderDialog> {
             obscureText: true,
           ),
           _DialogTextField(label: 'Base URL', controller: _baseUrlController),
-          _DialogTextField(label: 'API 路径', controller: _apiPathController),
+          _DialogTextField(
+            label: 'API 路径',
+            controller: _apiPathController,
+            inputFormatters: _apiPathInputFormatters,
+          ),
           const SizedBox(height: 16),
           Align(
             alignment: Alignment.centerRight,
@@ -6969,6 +6978,7 @@ class _CommittedTextField extends StatefulWidget {
     this.enabled = true,
     this.obscureText = false,
     this.compact = false,
+    this.inputFormatters,
   });
 
   final String value;
@@ -6976,6 +6986,7 @@ class _CommittedTextField extends StatefulWidget {
   final bool enabled;
   final bool obscureText;
   final bool compact;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   State<_CommittedTextField> createState() => _CommittedTextFieldState();
@@ -7007,6 +7018,7 @@ class _CommittedTextFieldState extends State<_CommittedTextField> {
       enabled: widget.enabled,
       textAlignVertical: widget.compact ? TextAlignVertical.center : null,
       obscureText: widget.obscureText,
+      inputFormatters: widget.inputFormatters,
       onChanged: widget.enabled ? widget.onChanged : null,
       onSubmitted: widget.enabled ? widget.onChanged : null,
       onEditingComplete: widget.enabled && widget.onChanged != null
@@ -7029,12 +7041,14 @@ class _LooseField extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.obscureText = false,
+    this.inputFormatters,
   });
 
   final String label;
   final String value;
   final ValueChanged<String> onChanged;
   final bool obscureText;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -7049,6 +7063,7 @@ class _LooseField extends StatelessWidget {
             value: value,
             obscureText: obscureText,
             compact: true,
+            inputFormatters: inputFormatters,
             onChanged: onChanged,
           ),
         ],
@@ -7693,11 +7708,13 @@ class _DialogTextField extends StatelessWidget {
     required this.label,
     required this.controller,
     this.obscureText = false,
+    this.inputFormatters,
   });
 
   final String label;
   final TextEditingController controller;
   final bool obscureText;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -7706,6 +7723,7 @@ class _DialogTextField extends StatelessWidget {
       child: TextField(
         controller: controller,
         obscureText: obscureText,
+        inputFormatters: inputFormatters,
         decoration: InputDecoration(labelText: label),
       ),
     );

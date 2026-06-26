@@ -125,6 +125,57 @@ void main() {
     );
   });
 
+  test(
+    'local data service recovers config with trailing invalid content',
+    () async {
+      final temp = await Directory.systemTemp.createTemp(
+        'spring_note_config_recover_',
+      );
+      addTearDown(() async {
+        if (await temp.exists()) {
+          await temp.delete(recursive: true);
+        }
+      });
+
+      final root = Directory('${temp.path}${Platform.pathSeparator}SpringNote');
+      await root.create(recursive: true);
+      final configFile = File(
+        '${root.path}${Platform.pathSeparator}config.json',
+      );
+      await configFile.writeAsString('''
+{
+  "dailyWorkHours": 6,
+  "hotkeys": {
+    "toggleWindow": "Ctrl+Alt+H"
+  }
+}
+  }
+}
+ft+S"
+''');
+
+      final service = LocalDataService(
+        appDataPath: temp.path,
+        executableDirectoryPath: '${temp.path}${Platform.pathSeparator}bin',
+      );
+      final state = await service.initialize();
+
+      expect(state.config.dailyWorkHours, 6);
+      expect(state.config.hotkeys['toggleWindow'], 'Ctrl+Alt+H');
+      expect(
+        jsonDecode(await configFile.readAsString()),
+        isA<Map<String, Object?>>(),
+      );
+      final backupNames = root.listSync().whereType<File>().map(
+        (file) => file.path.split(Platform.pathSeparator).last,
+      );
+      expect(
+        backupNames.any((name) => name.startsWith('config.json.invalid-')),
+        isTrue,
+      );
+    },
+  );
+
   test('local data service migrates data to custom directory', () async {
     final temp = await Directory.systemTemp.createTemp('spring_note_migrate_');
     addTearDown(() async {

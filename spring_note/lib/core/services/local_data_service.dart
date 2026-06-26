@@ -142,19 +142,116 @@ class LocalDataService {
       return config;
     }
 
-    final decoded = jsonDecode(content);
+    final decodedConfig = _decodeConfigFile(content);
+    if (decodedConfig.recovered) {
+      await _backupInvalidConfig(file);
+    }
+    final decoded = decodedConfig.value;
     if (decoded is! Map) {
-      throw const FormatException('config.json must contain a JSON object');
+      if (!decodedConfig.recovered) {
+        await _backupInvalidConfig(file);
+      }
+      final config = AppConfig.defaults();
+      await _writeConfig(file, config);
+      return config;
     }
 
     final json = decoded.map((key, value) => MapEntry(key.toString(), value));
-    return AppConfig.fromJson(json);
+    final config = AppConfig.fromJson(json);
+    if (decodedConfig.recovered) {
+      await _writeConfig(file, config);
+    }
+    return config;
   }
 
   Future<void> _writeConfig(File file, AppConfig config) async {
     const encoder = JsonEncoder.withIndent('  ');
     await file.parent.create(recursive: true);
-    await file.writeAsString('${encoder.convert(config.toJson())}\n');
+    final tempFile = File(
+      '${file.path}.tmp-${DateTime.now().microsecondsSinceEpoch}',
+    );
+    await tempFile.writeAsString(
+      '${encoder.convert(config.toJson())}\n',
+      flush: true,
+    );
+    try {
+      await tempFile.rename(file.path);
+    } on FileSystemException {
+      if (await file.exists()) {
+        await file.delete();
+      }
+      await tempFile.rename(file.path);
+    }
+  }
+
+  ({Object? value, bool recovered}) _decodeConfigFile(String content) {
+    try {
+      return (value: jsonDecode(content), recovered: false);
+    } on FormatException {
+      final recoveredContent = _leadingJsonObject(content);
+      if (recoveredContent == null) {
+        return (value: null, recovered: true);
+      }
+      try {
+        return (value: jsonDecode(recoveredContent), recovered: true);
+      } on FormatException {
+        return (value: null, recovered: true);
+      }
+    }
+  }
+
+  String? _leadingJsonObject(String content) {
+    final start = content.indexOf('{');
+    if (start == -1 || content.substring(0, start).trim().isNotEmpty) {
+      return null;
+    }
+
+    var depth = 0;
+    var inString = false;
+    var escaped = false;
+    for (var index = start; index < content.length; index++) {
+      final codeUnit = content.codeUnitAt(index);
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (codeUnit == 0x5C) {
+          escaped = true;
+        } else if (codeUnit == 0x22) {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (codeUnit == 0x22) {
+        inString = true;
+      } else if (codeUnit == 0x7B) {
+        depth += 1;
+      } else if (codeUnit == 0x7D) {
+        depth -= 1;
+        if (depth == 0) {
+          final trailing = content.substring(index + 1).trim();
+          return trailing.isEmpty ? null : content.substring(start, index + 1);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  Future<void> _backupInvalidConfig(File file) async {
+    if (!await file.exists()) {
+      return;
+    }
+    final timestamp = DateTime.now().toIso8601String().replaceAll(
+      RegExp(r'[:.]'),
+      '-',
+    );
+    final backup = File('${file.path}.invalid-$timestamp');
+    try {
+      await file.copy(backup.path);
+    } catch (_) {
+      // A broken config should not keep the app from rebuilding defaults.
+    }
   }
 
   Future<Directory> _resolveDataDirectory() async {
